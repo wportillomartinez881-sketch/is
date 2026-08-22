@@ -6,8 +6,8 @@
     <title>NEXUS - Servicios Empresariales S.A. de C.V.</title>
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Librería OGL para renderizar el efecto WebGL con alto rendimiento -->
-    <script src="https://unpkg.com/ogl"></script>
+    <!-- Librería OGL para renderizar el efecto WebGL -->
+    <script src="https://cdn.jsdelivr.net/npm/ogl@0.0.94/dist/ogl.umd.js"></script>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -33,21 +33,31 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            width: 100vw;
+            margin: 0;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Contenedor del fondo animado GradientWaves */
+        /* Contenedor del fondo animado (Capa inferior) */
         #gradient-waves-bg {
-            position: fixed;
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            pointer-events: auto; /* Permite interacción con el mouse */
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: auto;
+        }
+        
+        /* Asegurar que el canvas de OGL llene el contenedor */
+        #gradient-waves-bg canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
         }
 
+        /* Contenedor del formulario (Capa superior) */
         .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -59,7 +69,8 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            z-index: 1;
+            z-index: 10;
+            position: relative;
         }
 
         /* Lado izquierdo: Información Corporativa */
@@ -246,9 +257,10 @@
 </head>
 <body>
 
-    <!-- Contenedor donde se renderizará el GradientWaves -->
+    <!-- Contenedor del fondo animado -->
     <div id="gradient-waves-bg"></div>
 
+    <!-- Panel Principal -->
     <div class="container">
         <!-- Panel Izquierdo: Presentación Institucional -->
         <div class="brand-section">
@@ -271,6 +283,7 @@
             <h2>Acceso a Clientes</h2>
             <p class="subtitle">Ingrese sus credenciales autorizadas para acceder al sistema.</p>
             
+            <!-- Formulario de Login -->
             <form id="loginForm" onsubmit="validarLogin(event)">
                 <div class="input-group">
                     <label for="email">Correo Electrónico</label>
@@ -296,215 +309,100 @@
                 <span>¿Nueva Empresa?</span>
             </div>
 
+            <!-- Botón de redirección al formulario de contacto -->
             <a href="https://wportillomartinez881-sketch.github.io/correo/" class="btn btn-secondary">
                 <i class="fas fa-handshake" style="margin-right: 8px;"></i> Solicitar Asesoría / Contacto
             </a>
         </div>
     </div>
 
-    <!-- Script de Inicialización de GradientWaves adaptado a WebGL nativo -->
+    <!-- Script de Inicialización de GradientWaves (Adaptación Vanilla JS) -->
     <script>
-        const hexToRgb = hex => {
-            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-            if (!result) return [1, 1, 1];
-            return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
-        };
+        window.addEventListener('DOMContentLoaded', () => {
+            // --- UTILIDADES ---
+            const hexToRgb = hex => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                if (!result) return [1, 1, 1];
+                return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
+            };
 
-        const vertexShader = `#version 300 es
-        in vec2 position;
-        void main() {
-            gl_Position = vec4(position, 0.0, 1.0);
-        }`;
+            // --- SHADERS ---
+            const vertexShader = `#version 300 es
+            in vec2 position;
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+            }`;
 
-        const fragmentShader = `#version 300 es
-        precision highp float;
-        uniform vec2 iResolution;
-        uniform float iTime;
-        uniform float uSpeed;
-        uniform float uAmplitude;
-        uniform float uWaveScale;
-        uniform float uWaveRatio;
-        uniform float uSwell;
-        uniform float uTurbulence;
-        uniform float uTilt;
-        uniform float uZoom;
-        uniform float uHeight;
-        uniform float uFogDepth;
-        uniform float uSteps;
-        uniform float uBrightness;
-        uniform float uOpacity;
-        uniform float uGrain;
-        uniform float uGrainIntensity;
-        uniform vec2 uMouse;
-        uniform float uParallax;
-        uniform bool uEnableMouse;
-        uniform vec3 uHorizonColor;
-        uniform vec3 uWaveColor;
-        uniform vec3 uCrestColor;
-        out vec4 fragColor;
+            const fragmentShader = `#version 300 es
+            precision highp float;
+            uniform vec2 iResolution;
+            uniform float iTime;
+            uniform float uSpeed;
+            uniform float uAmplitude;
+            uniform float uWaveScale;
+            uniform float uWaveRatio;
+            uniform float uSwell;
+            uniform float uTurbulence;
+            uniform float uTilt;
+            uniform float uZoom;
+            uniform float uHeight;
+            uniform float uFogDepth;
+            uniform float uSteps;
+            uniform float uBrightness;
+            uniform float uOpacity;
+            uniform float uGrain;
+            uniform float uGrainIntensity;
+            uniform vec2 uMouse;
+            uniform float uParallax;
+            uniform bool uEnableMouse;
+            uniform vec3 uHorizonColor;
+            uniform vec3 uWaveColor;
+            uniform vec3 uCrestColor;
+            out vec4 fragColor;
 
-        const float MAX_DIST = 20000.0;
+            const float MAX_DIST = 20000.0;
 
-        float hash21(vec2 p) {
-            vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-            p3 += dot(p3, p3.yzx + 33.33);
-            return fract((p3.x + p3.y) * p3.z);
-        }
-
-        float plasma(vec3 r, vec2 freq, vec4 tc) {
-            float mx = r.x + tc.x;
-            mx += uSwell * sin((r.y + mx) / 20.0 + tc.y);
-            float my = r.y - tc.z;
-            my += uTurbulence * cos(r.x / 23.0 + tc.w);
-            return r.z - (sin(mx * freq.x) * uAmplitude + sin(my * freq.y) * uAmplitude + uHeight);
-        }
-
-        float raymarch(vec3 pos, vec3 dir, vec2 freq, vec4 tc) {
-            float dist = 0.0;
-            for (int i = 0; i < 128; i++) {
-                if (float(i) >= uSteps) break;
-                float dscene = plasma(pos + dist * dir, freq, tc);
-                if (abs(dscene) < 0.1) break;
-                dist += 0.9 * dscene;
-                if (!(abs(dist) < MAX_DIST)) return MAX_DIST;
+            float hash21(vec2 p) {
+                vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+                p3 += dot(p3, p3.yzx + 33.33);
+                return fract((p3.x + p3.y) * p3.z);
             }
-            return dist;
-        }
 
-        void main() {
-            float T = iTime * uSpeed;
-            vec2 freq = vec2(uWaveScale / 7.0, (uWaveScale * uWaveRatio) / 3.0);
-            vec4 tc = vec4(T / 0.130, T / 0.810, T / 0.200, T / 0.710);
-            float c, s;
-            float vfov = (3.14159 / 2.3) / max(uZoom, 0.05);
-            vec3 cam = vec3(0.0, 0.0, 30.0);
-            vec2 uv = (gl_FragCoord.xy / iResolution.xy) - 0.5;
-            uv.x *= iResolution.x / iResolution.y;
-            uv.y *= -1.0;
+            float plasma(vec3 r, vec2 freq, vec4 tc) {
+                float mx = r.x + tc.x;
+                mx += uSwell * sin((r.y + mx) / 20.0 + tc.y);
+                float my = r.y - tc.z;
+                my += uTurbulence * cos(r.x / 23.0 + tc.w);
+                return r.z - (sin(mx * freq.x) * uAmplitude + sin(my * freq.y) * uAmplitude + uHeight);
+            }
 
-            vec3 dir = vec3(0.0, 0.0, -1.0);
-            float ulen = length(uv);
-            float xrot = vfov * ulen;
-            c = cos(xrot); s = sin(xrot);
-            dir = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c) * dir;
-            vec2 nuv = ulen > 1e-5 ? uv / ulen : vec2(1.0, 0.0);
-            c = nuv.x; s = nuv.y;
-            dir = mat3(c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0) * dir;
-            c = cos(uTilt); s = sin(uTilt);
-            dir = mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c) * dir;
+            float raymarch(vec3 pos, vec3 dir, vec2 freq, vec4 tc) {
+                float dist = 0.0;
+                for (int i = 0; i < 128; i++) {
+                    if (float(i) >= uSteps) break;
+                    float dscene = plasma(pos + dist * dir, freq, tc);
+                    if (abs(dscene) < 0.1) break;
+                    dist += 0.9 * dscene;
+                    if (!(abs(dist) < MAX_DIST)) return MAX_DIST;
+                }
+                return dist;
+            }
 
-            if (uEnableMouse) {
-                float yaw = (uMouse.x - 0.5) * uParallax * 0.4;
-                float pitch = (uMouse.y - 0.5) * uParallax * 0.4;
-                c = cos(yaw); s = sin(yaw);
-                dir = mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c) * dir;
-                c = cos(pitch); s = sin(pitch);
+            void main() {
+                float T = iTime * uSpeed;
+                vec2 freq = vec2(uWaveScale / 7.0, (uWaveScale * uWaveRatio) / 3.0);
+                vec4 tc = vec4(T / 0.130, T / 0.810, T / 0.200, T / 0.710);
+                float c, s;
+                float vfov = (3.14159 / 2.3) / max(uZoom, 0.05);
+                vec3 cam = vec3(0.0, 0.0, 30.0);
+                vec2 uv = (gl_FragCoord.xy / iResolution.xy) - 0.5;
+                uv.x *= iResolution.x / iResolution.y;
+                uv.y *= -1.0;
+
+                vec3 dir = vec3(0.0, 0.0, -1.0);
+                float ulen = length(uv);
+                float xrot = vfov * ulen;
+                c = cos(xrot); s = sin(xrot);
                 dir = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c) * dir;
-            }
-
-            float dist = raymarch(cam, dir, freq, tc);
-            vec3 pos = cam + dist * dir;
-
-            float t = clamp(uFogDepth / max(dist, 0.001), 0.0, 1.0);
-            vec3 body = mix(uWaveColor, uCrestColor, clamp(pos.z * 0.08 + 0.5, 0.0, 1.0));
-            vec3 col = mix(uHorizonColor, body, t);
-            col *= uBrightness;
-            col = clamp(col, 0.0, 1.0);
-
-            float alpha = clamp(t, 0.0, 1.0) * uOpacity;
-            if (uGrain > 0.5) {
-                float g = hash21(gl_FragCoord.xy + mod(iTime, 64.0) * 11.0);
-                alpha += (g - 0.5) * uGrainIntensity;
-            }
-            alpha = clamp(alpha, 0.0, 1.0);
-            fragColor = vec4(col * alpha, alpha);
-        }`;
-
-        // Inicialización de OGL en el div
-        const container = document.getElementById('gradient-waves-bg');
-        const renderer = new ogl.Renderer({ webgl: 2, alpha: true, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, 2) });
-        const gl = renderer.gl;
-        container.appendChild(gl.canvas);
-
-        const geometry = new ogl.Triangle(gl);
-        const program = new ogl.Program(gl, {
-            vertex: vertexShader,
-            fragment: fragmentShader,
-            uniforms: {
-                iTime: { value: 0 },
-                iResolution: { value: new Float32Array([1, 1]) },
-                uSpeed: { value: 0.4 },
-                uAmplitude: { value: 2.5 },
-                uWaveScale: { value: 0.6 },
-                uWaveRatio: { value: 0.9 },
-                uSwell: { value: 35 },
-                uTurbulence: { value: 20 },
-                uTilt: { value: 1.11 },
-                uZoom: { value: 1.0 },
-                uHeight: { value: 5.5 },
-                uFogDepth: { value: 15 },
-                uSteps: { value: 70.0 },
-                uBrightness: { value: 1.0 },
-                uOpacity: { value: 1.0 },
-                uGrain: { value: 1.0 },
-                uGrainIntensity: { value: 0.05 },
-                uMouse: { value: new Float32Array([0.5, 0.5]) },
-                uParallax: { value: 0.5 },
-                uEnableMouse: { value: true },
-                uHorizonColor: { value: new Float32Array(hexToRgb('#2e00e9')) },
-                uWaveColor: { value: new Float32Array(hexToRgb('#0018ff')) },
-                uCrestColor: { value: new Float32Array(hexToRgb('#d79cff')) }
-            }
-        });
-
-        const mesh = new ogl.Mesh(gl, { geometry, program });
-
-        function resize() {
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
-            program.uniforms.iResolution.value[0] = gl.drawingBufferWidth;
-            program.uniforms.iResolution.value[1] = gl.drawingBufferHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // Interactividad con el mouse
-        const targetMouse = [0.5, 0.5];
-        const currentMouse = [0.5, 0.5];
-        window.addEventListener('pointermove', e => {
-            targetMouse[0] = e.clientX / window.innerWidth;
-            targetMouse[1] = 1.0 - e.clientY / window.innerHeight;
-        });
-
-        const t0 = performance.now();
-        function update(t) {
-            requestAnimationFrame(update);
-            program.uniforms.iTime.value = (t - t0) * 0.001;
-            currentMouse[0] += 0.05 * (targetMouse[0] - currentMouse[0]);
-            currentMouse[1] += 0.05 * (targetMouse[1] - currentMouse[1]);
-            program.uniforms.uMouse.value[0] = currentMouse[0];
-            program.uniforms.uMouse.value[1] = currentMouse[1];
-            renderer.render({ scene: mesh });
-        }
-        requestAnimationFrame(update);
-
-        // Lógica de validación del Login
-        function validarLogin(event) {
-            event.preventDefault();
-            const emailInput = document.getElementById('email').value.trim();
-            const passwordInput = document.getElementById('password').value.trim();
-            const errorMsg = document.getElementById('error-msg');
-
-            const correoValido = "admin@nexus.com";
-            const passwordValida = "Nexus2026*";
-
-            if (emailInput === correoValido && passwordInput === passwordValida) {
-                errorMsg.style.display = "none";
-                alert("¡Acceso autorizado! Redirigiendo al sistema...");
-                window.location.href = "https://TU-USUARIO.github.io/NOMBRE-DE-TU-APP-PRINCIPAL/";
-            } else {
-                errorMsg.style.display = "block";
-            }
-        }
-    </script>
-</body>
-</html>
+                vec2 nuv = ulen > 1e-5 ? uv / ulen : vec2(1.0, 0.0);
+                c = nuv.x; s =
