@@ -50,7 +50,6 @@
             pointer-events: auto;
         }
         
-        /* Asegurar que el canvas de OGL llene el contenedor */
         #gradient-waves-bg canvas {
             display: block;
             width: 100% !important;
@@ -262,7 +261,7 @@
 
     <!-- Panel Principal -->
     <div class="container">
-        <!-- Panel Izquierdo: Presentación Institucional -->
+        <!-- Panel Izquierdo -->
         <div class="brand-section">
             <div>
                 <h1>NEXUS</h1>
@@ -278,12 +277,11 @@
             </div>
         </div>
 
-        <!-- Panel Derecho: Acciones -->
+        <!-- Panel Derecho: Acceso -->
         <div class="form-section">
             <h2>Acceso a Clientes</h2>
             <p class="subtitle">Ingrese sus credenciales autorizadas para acceder al sistema.</p>
             
-            <!-- Formulario de Login -->
             <form id="loginForm" onsubmit="validarLogin(event)">
                 <div class="input-group">
                     <label for="email">Correo Electrónico</label>
@@ -309,24 +307,21 @@
                 <span>¿Nueva Empresa?</span>
             </div>
 
-            <!-- Botón de redirección al formulario de contacto -->
             <a href="https://wportillomartinez881-sketch.github.io/correo/" class="btn btn-secondary">
                 <i class="fas fa-handshake" style="margin-right: 8px;"></i> Solicitar Asesoría / Contacto
             </a>
         </div>
     </div>
 
-    <!-- Script de Inicialización de GradientWaves (Adaptación Vanilla JS) -->
+    <!-- Script de Inicialización de GradientWaves -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            // --- UTILIDADES ---
             const hexToRgb = hex => {
                 const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
                 if (!result) return [1, 1, 1];
                 return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
             };
 
-            // --- SHADERS ---
             const vertexShader = `#version 300 es
             in vec2 position;
             void main() {
@@ -405,4 +400,117 @@
                 c = cos(xrot); s = sin(xrot);
                 dir = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c) * dir;
                 vec2 nuv = ulen > 1e-5 ? uv / ulen : vec2(1.0, 0.0);
-                c = nuv.x; s =
+                c = nuv.x; s = nuv.y;
+                dir = mat3(c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0) * dir;
+                c = cos(uTilt); s = sin(uTilt);
+                dir = mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c) * dir;
+
+                if (uEnableMouse) {
+                    float yaw = (uMouse.x - 0.5) * uParallax * 0.4;
+                    float pitch = (uMouse.y - 0.5) * uParallax * 0.4;
+                    c = cos(yaw); s = sin(yaw);
+                    dir = mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c) * dir;
+                    c = cos(pitch); s = sin(pitch);
+                    dir = mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c) * dir;
+                }
+
+                float dist = raymarch(cam, dir, freq, tc);
+                vec3 pos = cam + dist * dir;
+
+                float t = clamp(uFogDepth / max(dist, 0.001), 0.0, 1.0);
+                vec3 body = mix(uWaveColor, uCrestColor, clamp(pos.z * 0.08 + 0.5, 0.0, 1.0));
+                vec3 col = mix(uHorizonColor, body, t);
+                col *= uBrightness;
+                col = clamp(col, 0.0, 1.0);
+
+                float alpha = clamp(t, 0.0, 1.0) * uOpacity;
+                if (uGrain > 0.5) {
+                    float g = hash21(gl_FragCoord.xy + mod(iTime, 64.0) * 11.0);
+                    alpha += (g - 0.5) * uGrainIntensity;
+                }
+                alpha = clamp(alpha, 0.0, 1.0);
+                fragColor = vec4(col * alpha, alpha);
+            }`;
+
+            const container = document.getElementById('gradient-waves-bg');
+            const renderer = new ogl.Renderer({ webgl: 2, alpha: true, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, 2) });
+            const gl = renderer.gl;
+            container.appendChild(gl.canvas);
+
+            const geometry = new ogl.Triangle(gl);
+            const program = new ogl.Program(gl, {
+                vertex: vertexShader,
+                fragment: fragmentShader,
+                uniforms: {
+                    iTime: { value: 0 },
+                    iResolution: { value: new Float32Array([1, 1]) },
+                    uSpeed: { value: 0.4 },
+                    uAmplitude: { value: 2.5 },
+                    uWaveScale: { value: 0.6 },
+                    uWaveRatio: { value: 0.9 },
+                    uSwell: { value: 35 },
+                    uTurbulence: { value: 20 },
+                    uTilt: { value: 1.11 },
+                    uZoom: { value: 1.0 },
+                    uHeight: { value: 5.5 },
+                    uFogDepth: { value: 15 },
+                    uSteps: { value: 70.0 },
+                    uBrightness: { value: 1.0 },
+                    uOpacity: { value: 1.0 },
+                    uGrain: { value: 1.0 },
+                    uGrainIntensity: { value: 0.05 },
+                    uMouse: { value: new Float32Array([0.5, 0.5]) },
+                    uParallax: { value: 0.5 },
+                    uEnableMouse: { value: true },
+                    uHorizonColor: { value: new Float32Array(hexToRgb('#2e00e9')) },
+                    uWaveColor: { value: new Float32Array(hexToRgb('#0018ff')) },
+                    uCrestColor: { value: new Float32Array(hexToRgb('#d79cff')) }
+                }
+            });
+
+            const mesh = new ogl.Mesh(gl, { geometry, program });
+
+            function resize() {
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+                program.uniforms.iResolution.value[0] = gl.drawingBufferWidth;
+                program.uniforms.iResolution.value[1] = gl.drawingBufferHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            const targetMouse = [0.5, 0.5];
+            const currentMouse = [0.5, 0.5];
+            window.addEventListener('pointermove', e => {
+                targetMouse[0] = e.clientX / window.innerWidth;
+                targetMouse[1] = 1.0 - e.clientY / window.innerHeight;
+            });
+
+            const t0 = performance.now();
+            function update(t) {
+                requestAnimationFrame(update);
+                program.uniforms.iTime.value = (t - t0) * 0.001;
+                currentMouse[0] += 0.05 * (targetMouse[0] - currentMouse[0]);
+                currentMouse[1] += 0.05 * (targetMouse[1] - currentMouse[1]);
+                program.uniforms.uMouse.value[0] = currentMouse[0];
+                program.uniforms.uMouse.value[1] = currentMouse[1];
+                renderer.render({ scene: mesh });
+            }
+            requestAnimationFrame(update);
+        });
+
+        function validarLogin(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('email').value.trim();
+            const passwordInput = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+
+            if (emailInput === "admin@nexus.com" && passwordInput === "Nexus2026*") {
+                errorMsg.style.display = "none";
+                alert("¡Acceso autorizado! Redirigiendo...");
+            } else {
+                errorMsg.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
