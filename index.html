@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020817">
+  <title>Nexus — N Particle Animation</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020817;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      position: relative;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: default;
+    }
+
+    .content {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .brand {
+      position: absolute;
+      top: 34px;
+      left: 42px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      letter-spacing: 4px;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(0, 153, 255, .55);
+    }
+
+    .brand-n {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(0, 174, 255, .75);
+      display: grid;
+      place-items: center;
+      color: #39bfff;
+      font-size: 17px;
+      font-weight: 900;
+      box-shadow:
+        0 0 12px rgba(0, 174, 255, .45),
+        inset 0 0 12px rgba(0, 174, 255, .12);
+    }
+
+    .subtitle {
+      position: absolute;
+      bottom: 42px;
+      color: rgba(190, 225, 255, .72);
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(0, 153, 255, .5);
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center,
+          transparent 0%,
+          transparent 38%,
+          rgba(0, 8, 24, .18) 68%,
+          rgba(0, 4, 15, .72) 100%);
+    }
+
+    @media (max-width: 600px) {
+      .brand {
+        top: 24px;
+        left: 24px;
+        font-size: 12px;
+      }
+
+      .brand-n {
+        width: 28px;
+        height: 28px;
+        font-size: 15px;
+      }
+
+      .subtitle {
+        bottom: 28px;
+        font-size: 8px;
+        letter-spacing: 3px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="vignette"></div>
+
+  <div class="content">
+    <div class="brand">
+      <span class="brand-n">N</span>
+      <span>NEXUS</span>
+    </div>
+
+    <div class="subtitle">Tu aliado estratégico en gestión empresarial</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+
+    const particles = [];
+    const mouse = {
+      x: -9999,
+      y: -9999,
+      active: false
+    };
+
+    /*
+      ==============================
+      CONFIGURACIÓN DE LA ANIMACIÓN
+      ==============================
+    */
+
+    const CONFIG = {
+      particleCount: 1800,
+
+      // Color principal de Nexus
+      blue: {
+        r: 0,
+        g: 174,
+        b: 255
+      },
+
+      // Velocidad general
+      speed: 1,
+
+      // Tamaño de partículas
+      minSize: 0.45,
+      maxSize: 1.7,
+
+      // Fuerza de interacción del mouse
+      mouseRadius: 115,
+      mouseForce: 2.2,
+
+      // Tiempos en milisegundos
+      gatherTime: 3200,
+      holdTime: 1800,
+      disperseTime: 3000,
+      idleTime: 900
+    };
+
+    let targets = [];
+    let cycleStart = performance.now();
+
+    /*
+      Crea una N usando texto sobre un canvas invisible
+      y toma los píxeles para convertirlos en partículas.
+    */
+
+    function createNTargets() {
+      const offscreen = document.createElement("canvas");
+      const octx = offscreen.getContext("2d");
+
+      const targetWidth = Math.min(width * 0.42, 520);
+      const targetHeight = Math.min(height * 0.62, 520);
+
+      offscreen.width = Math.floor(targetWidth);
+      offscreen.height = Math.floor(targetHeight);
+
+      const fontSize = Math.floor(
+        Math.min(targetWidth * 0.82, targetHeight * 1.05)
+      );
+
+      octx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+      octx.font = `900 ${fontSize}px Arial, Helvetica, sans-serif`;
+      octx.textAlign = "center";
+      octx.textBaseline = "middle";
+
+      // N ligeramente desplazada para centrarla visualmente
+      octx.fillStyle = "#ffffff";
+      octx.fillText(
+        "N",
+        offscreen.width / 2,
+        offscreen.height / 2 + fontSize * 0.04
+      );
+
+      const image = octx.getImageData(
+        0,
+        0,
+        offscreen.width,
+        offscreen.height
+      );
+
+      const points = [];
+
+      // Distancia entre partículas
+      const gap = Math.max(3, Math.floor(targetWidth / 115));
+
+      for (let y = 0; y < offscreen.height; y += gap) {
+        for (let x = 0; x < offscreen.width; x += gap) {
+          const index = (y * offscreen.width + x) * 4;
+          const alpha = image.data[index + 3];
+
+          if (alpha > 100) {
+            points.push({
+              x: x - offscreen.width / 2,
+              y: y - offscreen.height / 2
+            });
+          }
+        }
+      }
+
+      // Escala final
+      const scale = Math.min(
+        1,
+        (height * 0.72) / targetHeight
+      );
+
+      targets = points.map(point => ({
+        x: width / 2 + point.x * scale,
+        y: height / 2 + point.y * scale
+      }));
+    }
+
+    class Particle {
+      constructor(index) {
+        this.index = index;
+
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+
+        this.size =
+          CONFIG.minSize +
+          Math.random() *
+          (CONFIG.maxSize - CONFIG.minSize);
+
+        this.alpha = 0.25 + Math.random() * 0.75;
+
+        this.twinkle = Math.random() * Math.PI * 2;
+        this.twinkleSpeed = 0.01 + Math.random() * 0.035;
+
+        this.noise = Math.random() * 1000;
+
+        this.targetIndex =
+          index % Math.max(1, targets.length);
+      }
+
+      update(now, phase, progress) {
+        this.twinkle += this.twinkleSpeed;
+
+        const target = targets[this.targetIndex % targets.length];
+
+        if (phase === "gather") {
+          // Movimiento inicial libre
+          const ease = 1 - Math.pow(1 - progress, 3);
+
+          const tx = target.x;
+          const ty = target.y;
+
+          const dx = tx - this.x;
+          const dy = ty - this.y;
+
+          this.vx += dx * 0.0022 * ease;
+          this.vy += dy * 0.0022 * ease;
+
+          this.vx *= 0.91;
+          this.vy *= 0.91;
+
+          this.x += this.vx * CONFIG.speed;
+          this.y += this.vy * CONFIG.speed;
+
+        } else if (phase === "hold") {
+
+          const dx = target.x - this.x;
+          const dy = target.y - this.y;
+
+          this.vx += dx * 0.025;
+          this.vy += dy * 0.025;
+
+          this.vx *= 0.82;
+          this.vy *= 0.82;
+
+          this.x += this.vx;
+          this.y += this.vy;
+
+        } else if (phase === "disperse") {
+
+          const ease = Math.pow(progress, 1.5);
+
+          const centerX = width / 2;
+          const centerY = height / 2;
+
+          let dx = this.x - centerX;
+          let dy = this.y - centerY;
+
+          const length = Math.sqrt(dx * dx + dy * dy) || 1;
+
+          dx /= length;
+          dy /= length;
+
+          // Dirección de salida ligeramente aleatoria
+          this.vx += dx * 0.09 * ease;
+          this.vy += dy * 0.09 * ease;
+
+          this.vx += Math.sin(now * 0.001 + this.noise) * 0.008;
+          this.vy += Math.cos(now * 0.0012 + this.noise) * 0.008;
+
+          this.vx *= 0.985;
+          this.vy *= 0.985;
+
+          this.x += this.vx * 2.4;
+          this.y += this.vy * 2.4;
+
+        } else {
+
+          // Reposicionamiento suave para iniciar otro ciclo
+          this.vx *= 0.99;
+          this.vy *= 0.99;
+
+          this.x += this.vx;
+          this.y += this.vy;
+        }
+
+        /*
+          Interacción con el mouse
+        */
+
+        if (mouse.active) {
+          const dx = this.x - mouse.x;
+          const dy = this.y - mouse.y;
+
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < CONFIG.mouseRadius) {
+            const force =
+              (1 - distance / CONFIG.mouseRadius) *
+              CONFIG.mouseForce;
+
+            const angle = Math.atan2(dy, dx);
+
+            this.vx += Math.cos(angle) * force * 0.08;
+            this.vy += Math.sin(angle) * force * 0.08;
+          }
+        }
+
+        /*
+          Si una partícula se escapa demasiado,
+          vuelve desde el lado contrario.
+        */
+
+        const margin = 120;
+
+        if (this.x < -margin) this.x = width + margin;
+        if (this.x > width + margin) this.x = -margin;
+
+        if (this.y < -margin) this.y = height + margin;
+        if (this.y > height + margin) this.y = -margin;
+      }
+
+      draw(now, phase, progress) {
+        const pulse =
+          0.75 +
+          Math.sin(this.twinkle) * 0.25;
+
+        let alpha = this.alpha * pulse;
+
+        if (phase === "gather") {
+          alpha *= 0.55 + progress * 0.55;
+        }
+
+        if (phase === "disperse") {
+          alpha *= 1 - progress * 0.7;
+        }
+
+        const { r, g, b } = CONFIG.blue;
+
+        // Halo
+        ctx.beginPath();
+        ctx.fillStyle =
+          `rgba(${r}, ${g}, ${b}, ${alpha * 0.12})`;
+        ctx.arc(
+          this.x,
+          this.y,
+          this.size * 4.5,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+
+        // Partícula
+        ctx.beginPath();
+        ctx.fillStyle =
+          `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+        ctx.arc(
+          this.x,
+          this.y,
+          this.size,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fill();
+      }
+    }
+
+    function createParticles() {
+      particles.length = 0;
+
+      for (let i = 0; i < CONFIG.particleCount; i++) {
+        particles.push(new Particle(i));
+      }
+    }
+
+    function getPhase(now) {
+      const elapsed =
+        (now - cycleStart) %
+        (
+          CONFIG.gatherTime +
+          CONFIG.holdTime +
+          CONFIG.disperseTime +
+          CONFIG.idleTime
+        );
+
+      if (elapsed < CONFIG.gatherTime) {
+        return {
+          name: "gather",
+          progress: elapsed / CONFIG.gatherTime
+        };
+      }
+
+      if (
+        elapsed <
+        CONFIG.gatherTime + CONFIG.holdTime
+      ) {
+        return {
+          name: "hold",
+          progress:
+            (elapsed - CONFIG.gatherTime) /
+            CONFIG.holdTime
+        };
+      }
+
+      if (
+        elapsed <
+        CONFIG.gatherTime +
+        CONFIG.holdTime +
+        CONFIG.disperseTime
+      ) {
+        return {
+          name: "disperse",
+          progress:
+            (
+              elapsed -
+              CONFIG.gatherTime -
+              CONFIG.holdTime
+            ) / CONFIG.disperseTime
+        };
+      }
+
+      return {
+        name: "idle",
+        progress: 0
+      };
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "#020817";
+      ctx.fillRect(0, 0, width, height);
+
+      /*
+        Resplandor central azul
+      */
+
+      const glow = ctx.createRadialGradient(
+        width / 2,
+        height / 2,
+        0,
+        width / 2,
+        height / 2,
+        Math.max(width, height) * 0.52
+      );
+
+      glow.addColorStop(
+        0,
+        "rgba(0, 100, 190, 0.12)"
+      );
+
+      glow.addColorStop(
+        0.35,
+        "rgba(0, 70, 150, 0.045)"
+      );
+
+      glow.addColorStop(
+        1,
+        "rgba(0, 0, 0, 0)"
+      );
+
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    function drawConnections(phase) {
+      if (phase.name !== "hold") return;
+
+      /*
+        Conecta partículas cercanas para darle
+        aspecto de red tecnológica.
+      */
+
+      const maxDistance = 20;
+      const maxConnections = 1300;
+
+      let connections = 0;
+
+      ctx.lineWidth = 0.35;
+
+      for (let i = 0; i < particles.length && connections < maxConnections; i++) {
+        const a = particles[i];
+
+        for (
+          let j = i + 1;
+          j < particles.length &&
+          connections < maxConnections;
+          j++
+        ) {
+          const b = particles[j];
+
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+
+          const distanceSquared =
+            dx * dx + dy * dy;
+
+          if (distanceSquared < maxDistance * maxDistance) {
+            const distance =
+              Math.sqrt(distanceSquared);
+
+            const alpha =
+              (1 - distance / maxDistance) * 0.16;
+
+            ctx.strokeStyle =
+              `rgba(0, 174, 255, ${alpha})`;
+
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+
+            connections++;
+          }
+        }
+      }
+    }
+
+    function animate(now) {
+      drawBackground();
+
+      const phase = getPhase(now);
+
+      for (const particle of particles) {
+        particle.update(
+          now,
+          phase.name,
+          phase.progress
+        );
+      }
+
+      drawConnections(phase);
+
+      for (const particle of particles) {
+        particle.draw(
+          now,
+          phase.name,
+          phase.progress
+        );
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      createNTargets();
+
+      /*
+        Al redimensionar, se conserva la animación
+        sin reiniciarla completamente.
+      */
+
+      if (particles.length === 0) {
+        createParticles();
+      }
+    }
+
+    window.addEventListener("resize", resize);
+
+    window.addEventListener("mousemove", event => {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+      mouse.active = true;
+    });
+
+    window.addEventListener("mouseleave", () => {
+      mouse.active = false;
+    });
+
+    window.addEventListener("touchmove", event => {
+      if (!event.touches.length) return;
+
+      mouse.x = event.touches[0].clientX;
+      mouse.y = event.touches[0].clientY;
+      mouse.active = true;
+    }, { passive: true });
+
+    window.addEventListener("touchend", () => {
+      mouse.active = false;
+    });
+
+    /*
+      Inicialización
+    */
+
+    resize();
+
+    // Pequeño retraso para que las partículas
+    // comiencen dispersas.
+    cycleStart =
+      performance.now() -
+      CONFIG.gatherTime * 0.35;
+
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
