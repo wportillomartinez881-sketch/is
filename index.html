@@ -6,7 +6,7 @@
     <title>NEXUS - Servicios Empresariales S.A. de C.V.</title>
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Librería OGL para renderizar el efecto WebGL -->
+    <!-- Librería OGL -->
     <script src="https://cdn.jsdelivr.net/npm/ogl@0.0.94/dist/ogl.umd.js"></script>
     <style>
         :root {
@@ -39,18 +39,18 @@
             position: relative;
         }
 
-        /* Contenedor del fondo animado (Capa inferior) */
-        #gradient-waves-bg {
+        /* Contenedor del fondo animado exacto */
+        .gradient-waves-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 0;
-            pointer-events: auto;
+            overflow: hidden;
         }
-        
-        #gradient-waves-bg canvas {
+
+        .gradient-waves-container canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
@@ -256,8 +256,8 @@
 </head>
 <body>
 
-    <!-- Contenedor del fondo animado -->
-    <div id="gradient-waves-bg"></div>
+    <!-- Contenedor exacto de React Bits -->
+    <div id="gradient-waves-container" class="gradient-waves-container"></div>
 
     <!-- Panel Principal -->
     <div class="container">
@@ -313,7 +313,7 @@
         </div>
     </div>
 
-    <!-- Script de Inicialización de GradientWaves -->
+    <!-- Script idéntico al motor original de GradientWaves -->
     <script>
         window.addEventListener('DOMContentLoaded', () => {
             const hexToRgb = hex => {
@@ -322,13 +322,19 @@
                 return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
             };
 
-            const vertexShader = `#version 300 es
+            const detailToSteps = detail => {
+                if (detail === 'low') return 40.0;
+                if (detail === 'high') return 110.0;
+                return 70.0;
+            };
+
+            const vertex = `#version 300 es
             in vec2 position;
             void main() {
                 gl_Position = vec4(position, 0.0, 1.0);
             }`;
 
-            const fragmentShader = `#version 300 es
+            const fragment = `#version 300 es
             precision highp float;
             uniform vec2 iResolution;
             uniform float iTime;
@@ -432,15 +438,35 @@
                 fragColor = vec4(col * alpha, alpha);
             }`;
 
-            const container = document.getElementById('gradient-waves-bg');
-            const renderer = new ogl.Renderer({ webgl: 2, alpha: true, antialias: false, dpr: Math.min(window.devicePixelRatio || 1, 2) });
+            const container = document.getElementById('gradient-waves-container');
+            if (!container) return;
+
+            const renderer = new ogl.Renderer({
+                webgl: 2,
+                alpha: true,
+                premultipliedAlpha: true,
+                antialias: false,
+                dpr: Math.min(window.devicePixelRatio || 1, 2)
+            });
+
             const gl = renderer.gl;
-            container.appendChild(gl.canvas);
+            gl.clearColor(0, 0, 0, 0);
+            const canvas = gl.canvas;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.display = 'block';
+            container.appendChild(canvas);
 
             const geometry = new ogl.Triangle(gl);
+            
+            // Colores por defecto del componente de React Bits
+            const hColor = hexToRgb('#5227FF');
+            const wColor = hexToRgb('#FF9FFC');
+            const cColor = hexToRgb('#FFFFFF');
+
             const program = new ogl.Program(gl, {
-                vertex: vertexShader,
-                fragment: fragmentShader,
+                vertex,
+                fragment,
                 uniforms: {
                     iTime: { value: 0 },
                     iResolution: { value: new Float32Array([1, 1]) },
@@ -454,7 +480,7 @@
                     uZoom: { value: 1.0 },
                     uHeight: { value: 5.5 },
                     uFogDepth: { value: 15 },
-                    uSteps: { value: 70.0 },
+                    uSteps: { value: detailToSteps('medium') },
                     uBrightness: { value: 1.0 },
                     uOpacity: { value: 1.0 },
                     uGrain: { value: 1.0 },
@@ -462,40 +488,58 @@
                     uMouse: { value: new Float32Array([0.5, 0.5]) },
                     uParallax: { value: 0.5 },
                     uEnableMouse: { value: true },
-                    uHorizonColor: { value: new Float32Array(hexToRgb('#2e00e9')) },
-                    uWaveColor: { value: new Float32Array(hexToRgb('#0018ff')) },
-                    uCrestColor: { value: new Float32Array(hexToRgb('#d79cff')) }
+                    uHorizonColor: { value: new Float32Array(hColor) },
+                    uWaveColor: { value: new Float32Array(wColor) },
+                    uCrestColor: { value: new Float32Array(cColor) }
                 }
             });
 
             const mesh = new ogl.Mesh(gl, { geometry, program });
 
-            function resize() {
-                renderer.setSize(container.offsetWidth, container.offsetHeight);
-                program.uniforms.iResolution.value[0] = gl.drawingBufferWidth;
-                program.uniforms.iResolution.value[1] = gl.drawingBufferHeight;
-            }
-            window.addEventListener('resize', resize);
-            resize();
+            const setSize = () => {
+                const rect = container.getBoundingClientRect();
+                const w = Math.max(1, Math.floor(rect.width));
+                const h = Math.max(1, Math.floor(rect.height));
+                renderer.setSize(w, h);
+                const res = program.uniforms.iResolution.value;
+                res[0] = gl.drawingBufferWidth;
+                res[1] = gl.drawingBufferHeight;
+                renderer.render({ scene: mesh });
+            };
 
-            const targetMouse = [0.5, 0.5];
+            const ro = new ResizeObserver(setSize);
+            ro.observe(container);
+            setSize();
+
             const currentMouse = [0.5, 0.5];
-            window.addEventListener('pointermove', e => {
-                targetMouse[0] = e.clientX / window.innerWidth;
-                targetMouse[1] = 1.0 - e.clientY / window.innerHeight;
-            });
+            const targetMouse = [0.5, 0.5];
 
+            const onPointerMove = e => {
+                const rect = canvas.getBoundingClientRect();
+                targetMouse[0] = (e.clientX - rect.left) / rect.width;
+                targetMouse[1] = 1.0 - (e.clientY - rect.top) / rect.height;
+            };
+            const onPointerLeave = () => {
+                targetMouse[0] = 0.5;
+                targetMouse[1] = 0.5;
+            };
+            canvas.addEventListener('pointermove', onPointerMove);
+            canvas.addEventListener('pointerleave', onPointerLeave);
+
+            let raf = 0;
             const t0 = performance.now();
-            function update(t) {
-                requestAnimationFrame(update);
+
+            const loop = t => {
                 program.uniforms.iTime.value = (t - t0) * 0.001;
                 currentMouse[0] += 0.05 * (targetMouse[0] - currentMouse[0]);
                 currentMouse[1] += 0.05 * (targetMouse[1] - currentMouse[1]);
                 program.uniforms.uMouse.value[0] = currentMouse[0];
                 program.uniforms.uMouse.value[1] = currentMouse[1];
                 renderer.render({ scene: mesh });
-            }
-            requestAnimationFrame(update);
+                raf = requestAnimationFrame(loop);
+            };
+
+            raf = requestAnimationFrame(loop);
         });
 
         function validarLogin(event) {
