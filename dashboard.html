@@ -343,7 +343,10 @@
                             </div>
                             <div class="form-group">
                                 <label>Salario Base Mensual ($)</label>
-                                <input type="number" id="empSalario" class="form-control" placeholder="0.00" step="0.01">
+                                <input type="number" id="empSalario" class="form-control" placeholder="0.00" step="0.01" oninput="calcularValorHoraExtraEmpleado()">
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px;">
+                                Valor estimado hora extra diurna: <strong id="lblValorHePreview" style="color: #4ade80;">$0.00</strong>
                             </div>
                             <button class="btn-action" onclick="registrarEmpleado()">
                                 <i class="fas fa-user-plus"></i> Guardar y Sincronizar Empleado
@@ -386,14 +389,14 @@
                                     <input type="number" id="planSalario" class="form-control" value="0.00" readonly>
                                 </div>
                                 <div class="form-group">
-                                    <label>Horas Extra Diurnas ($)</label>
-                                    <input type="number" id="planHeDiurnas" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                    <label>Cant. Horas Extra Diurnas</label>
+                                    <input type="number" id="planCantHeDiurnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
                                 </div>
                             </div>
                             <div class="grid-2">
                                 <div class="form-group">
-                                    <label>Horas Extra Nocturnas ($)</label>
-                                    <input type="number" id="planHeNocturnas" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                    <label>Cant. Horas Extra Nocturnas</label>
+                                    <input type="number" id="planCantHeNocturnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
                                 </div>
                                 <div class="form-group">
                                     <label>Vacaciones / Bonos ($)</label>
@@ -524,13 +527,13 @@
                             <tr><th>Usuario</th><th>Evento</th><th>Fecha y Hora</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Registrado inicio de sesión administrativo.</td></tr>
+                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Cargando registros de auditoría...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 11. FUNDAMENTO LEGAL (Ampliado) -->
+            <!-- 11. FUNDAMENTO LEGAL -->
             <div id="vista-legal" class="view-section">
                 <div class="module-card">
                     <h3>Fundamento Legal e Institucional (República de El Salvador)</h3>
@@ -572,9 +575,10 @@
         let historialPlanillas = [];
         let historialNovedades = [];
         let historialSincro = [];
+        let registroAuditoria = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-            // SEGURIDAD: Verificar inicio de sesión obligatorio
+            // SEGURIDAD OBLIGATORIA: Validar si existe sesión activa, si no, redirigir a index.html
             const datosUsuario = localStorage.getItem('nexus_usuario');
             if (!datosUsuario) {
                 window.location.href = "index.html";
@@ -583,6 +587,17 @@
             const usuario = JSON.parse(datosUsuario);
             document.getElementById('nombreUsuario').innerText = usuario.nombre || "Usuario";
             document.getElementById('rolUsuario').innerText = usuario.rol || "Administrador";
+
+            // Registrar inicio de sesión en auditoría local y almacenamiento
+            registrarAuditoriaEvento(usuario.nombre || "Administrador", "Inicio de Sesión Exitoso");
+
+            // Cargar empleados previos desde localStorage para evitar pérdida de datos al recargar
+            const empleadosGuardados = localStorage.getItem('nexus_empleados');
+            if (empleadosGuardados) {
+                listaEmpleados = JSON.parse(empleadosGuardados);
+                actualizarTablaEmpleados();
+                actualizarSelectEmpleados();
+            }
 
             inicializarGraficasEnCero();
         });
@@ -598,6 +613,13 @@
             if (nombreVista === 'reporte') actualizarReportes();
         }
 
+        function calcularValorHoraExtraEmpleado() {
+            const salario = parseFloat(document.getElementById('empSalario').value) || 0;
+            // Cálculo legal en ES: (Salario / 30 días / 8 horas) * 2 (por recargo del 100%)
+            const valorHora = (salario / 30 / 8) * 2;
+            document.getElementById('lblValorHePreview').innerText = `$${valorHora.toFixed(2)}`;
+        }
+
         async function registrarEmpleado() {
             const nombre = document.getElementById('empNombre').value.trim();
             const dui = document.getElementById('empDui').value.trim();
@@ -611,29 +633,34 @@
 
             const nuevoEmpleado = { nombre, dui, cargo, salario };
             listaEmpleados.push(nuevoEmpleado);
+            localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
 
-            // Sincronizar alta de empleado con Google Sheets
+            // Sincronizar alta con Google Sheets
             const payload = {
                 accion: "registrar_empleado",
-                ...nuevoEmpleado,
+                nombre: nombre,
+                dui: dui,
+                cargo: cargo,
+                salario: salario,
                 fecha: new Date().toISOString()
             };
 
             try {
                 await API.enviarDatos(payload);
-                registrarHistorialSincro("Alta de Empleado", nombre);
+                registrarHistorialSincro("Alta de Empleado", `Nombre: ${nombre} - Salario: $${salario.toFixed(2)}`);
             } catch (e) {
-                console.warn("Guardado localmente (sin conexión a nube activa).");
+                console.warn("Sincronización de empleado en nube omitida localmente.");
             }
 
             document.getElementById('empNombre').value = '';
             document.getElementById('empDui').value = '';
             document.getElementById('empCargo').value = '';
             document.getElementById('empSalario').value = '';
+            document.getElementById('lblValorHePreview').innerText = '$0.00';
 
             actualizarTablaEmpleados();
             actualizarSelectEmpleados();
-            alert("Empleado guardado con éxito y sincronizado.");
+            alert("Empleado guardado localmente y sincronizado con el documento maestro.");
         }
 
         function actualizarTablaEmpleados() {
@@ -655,6 +682,7 @@
 
         function eliminarEmpleado(index) {
             listaEmpleados.splice(index, 1);
+            localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
             actualizarTablaEmpleados();
             actualizarSelectEmpleados();
         }
@@ -672,13 +700,19 @@
 
         function calcularPlanillaCompleta() {
             const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
-            const heDiurnas = parseFloat(document.getElementById('planHeDiurnas').value) || 0;
-            const heNocturnas = parseFloat(document.getElementById('planHeNocturnas').value) || 0;
+            const cantHeDiurnas = parseInt(document.getElementById('planCantHeDiurnas').value) || 0;
+            const cantHeNocturnas = parseInt(document.getElementById('planCantHeNocturnas').value) || 0;
             const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
             const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
             const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
 
-            const totalDevengado = salarioBase + heDiurnas + heNocturnas + bonos + aguinaldo;
+            // Cálculo dinámico correcto basado en ley (Salario / 30 / 8 * 2)
+            const valorHoraBase = salarioBase > 0 ? (salarioBase / 30 / 8) * 2 : 0;
+            const montoHeDiurnas = cantHeDiurnas * valorHoraBase;
+            // Nocturna incluye un recargo extra adicional (25% sobre la diurna ordinaria por ley)
+            const montoHeNocturnas = cantHeNocturnas * (valorHoraBase * 1.25);
+
+            const totalDevengado = salarioBase + montoHeDiurnas + montoHeNocturnas + bonos + aguinaldo;
             
             const isss = Math.min(salarioBase, 1000) * 0.03;
             const afp = salarioBase * 0.0725;
@@ -702,7 +736,18 @@
             document.getElementById('resOtras').innerText = `$${deduccionesExtra.toFixed(2)}`;
             document.getElementById('resNeto').innerText = `$${salarioNeto.toFixed(2)}`;
 
-            return { totalDevengado, heExtraTotal: heDiurnas + heNocturnas + bonos, isss, afp, renta, deduccionesExtra, salarioNeto };
+            return { 
+                totalDevengado, 
+                heExtraTotal: montoHeDiurnas + montoHeNocturnas + bonos, 
+                cantHeDiurnas, 
+                montoHeDiurnas, 
+                montoHeNocturnas, 
+                isss, 
+                afp, 
+                renta, 
+                deduccionesExtra, 
+                salarioNeto 
+            };
         }
 
         async function sincronizarPlanillaMaestra() {
@@ -720,9 +765,12 @@
                 fecha: new Date().toISOString()
             };
 
-            // Registrar novedades si existen
-            if (calculo.heExtraTotal > 0) {
-                historialNovedades.push({ empleado: empleadoNombre, concepto: "Horas Extra / Bonos", monto: calculo.heExtraTotal });
+            // Registrar novedades detalladas
+            if (calculo.cantHeDiurnas > 0) {
+                historialNovedades.push({ empleado: empleadoNombre, concepto: `${calculo.cantHeDiurnas} Hora(s) Extra Diurna(s)`, monto: calculo.montoHeDiurnas });
+            }
+            if (calculo.montoHeNocturnas > 0) {
+                historialNovedades.push({ empleado: empleadoNombre, concepto: `Horas Extra Nocturnas`, monto: calculo.montoHeNocturnas });
             }
             if (calculo.deduccionesExtra > 0) {
                 historialNovedades.push({ empleado: empleadoNombre, concepto: "Faltas / Incapacidades", monto: calculo.deduccionesExtra });
@@ -730,15 +778,48 @@
 
             try {
                 await API.enviarDatos(payload);
-                registrarHistorialSincro("Cálculo de Planilla", empleadoNombre);
+                registrarHistorialSincro("Cálculo de Planilla", `Empleado: ${empleadoNombre} - Neto: $${calculo.salarioNeto.toFixed(2)}`);
             } catch (error) {
-                console.warn("Guardado local.");
+                console.warn("Sincronización en la nube omitida.");
             }
 
             historialPlanillas.push({ empleado: empleadoNombre, ...calculo });
             actualizarTablaDetallePlanilla();
             actualizarTablaNovedades();
             alert("¡Planilla sincronizada con éxito y guardada en el documento maestro!");
+        }
+
+        async function registrarHistorialSincro(accion, detalle) {
+            const fecha = new Date().toLocaleString();
+            const itemHistorial = { fecha, accion, detalle };
+            historialSincro.push(itemHistorial);
+            
+            // Refrescar tabla visual de historial
+            const tbody = document.querySelector('#tablaHistorial tbody');
+            tbody.innerHTML = historialSincro.map(h => `
+                <tr><td>${h.fecha}</td><td>${h.accion}</td><td>${h.detalle}</td></tr>
+            `).join('');
+
+            // Sincronizar historial con Google Sheets
+            try {
+                await API.enviarDatos({
+                    accion: "registrar_historial",
+                    ...itemHistorial
+                });
+            } catch(e) {
+                console.warn("No se pudo enviar el historial a Google Sheets en tiempo real.");
+            }
+        }
+
+        function registrarAuditoriaEvento(usuario, evento) {
+            const fecha = new Date().toLocaleString();
+            registroAuditoria.push({ usuario, evento, fecha });
+            const tbody = document.querySelector('#tablaAuditoria tbody');
+            if (tbody) {
+                tbody.innerHTML = registroAuditoria.map(a => `
+                    <tr><td>${a.usuario}</td><td>${a.evento}</td><td>${a.fecha}</td></tr>
+                `).join('');
+            }
         }
 
         function actualizarTablaDetallePlanilla() {
@@ -769,15 +850,6 @@
             }
             tbody.innerHTML = historialNovedades.map(n => `
                 <tr><td>${n.empleado}</td><td>${n.concepto}</td><td>$${n.monto.toFixed(2)}</td></tr>
-            `).join('');
-        }
-
-        function registrarHistorialSincro(accion, detalle) {
-            const fecha = new Date().toLocaleString();
-            historialSincro.push({ fecha, accion, detalle });
-            const tbody = document.querySelector('#tablaHistorial tbody');
-            tbody.innerHTML = historialSincro.map(h => `
-                <tr><td>${h.fecha}</td><td>${h.accion}</td><td>${h.detalle}</td></tr>
             `).join('');
         }
 
@@ -823,6 +895,7 @@
         }
 
         function cerrarSesion() {
+            registrarAuditoriaEvento(JSON.parse(localStorage.getItem('nexus_usuario'))?.nombre || "Usuario", "Cierre de Sesión");
             localStorage.removeItem('nexus_usuario');
             window.location.href = "index.html";
         }
