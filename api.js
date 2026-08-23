@@ -1,59 +1,34 @@
 /**
- * NEXUS — Cliente de API / Conexión con Google Apps Script
+ * Capa de Comunicación API para NEXUS
+ * Maneja las peticiones HTTP hacia el documento maestro en Google Sheets
  */
 const API = {
-  getURL() {
-    if (typeof NEXUS_CONFIG !== 'undefined' && NEXUS_CONFIG.WEB_APP_URL) {
-      return NEXUS_CONFIG.WEB_APP_URL;
+    /**
+     * Envía datos mediante POST a la Web App de Google Apps Script
+     * @param {Object} payload - Objeto con los datos que se registrarán en la hoja.
+     * @returns {Promise<Object>} Respuesta procesada del servidor.
+     */
+    async enviarDatos(payload) {
+        if (!CONFIG || !CONFIG.GOOGLE_SCRIPT_URL) {
+            throw new Error("La configuración de la API (CONFIG.GOOGLE_SCRIPT_URL) no está disponible.");
+        }
+
+        try {
+            const respuesta = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                // text/plain;charset=utf-8 evita bloqueos CORS pre-flight en Google Apps Script[cite: 1]
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            // Intentamos parsear la respuesta como JSON enviada desde Google Apps Script
+            const resultado = await respuesta.json();
+            return resultado;
+        } catch (error) {
+            console.error("Error al comunicarse con la API de Google Sheets:", error);
+            throw error;
+        }
     }
-    if (typeof API_URL !== 'undefined') {
-      return API_URL;
-    }
-    return '';
-  },
-
-  async post(datos) {
-    const url = this.getURL();
-
-    if (!url || url.includes("TU_WEB_APP_ID")) {
-      console.warn("NEXUS_CONFIG.WEB_APP_URL no configurada. Operando en modo local.");
-      return { status: "success", offline: true, mensaje: "Modo fuera de línea activo" };
-    }
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(datos)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Error de conexión con Google Sheets:", error);
-      // Retornar respuesta de éxito local para permitir uso ininterrumpido
-      return { 
-        status: "success", 
-        offline: true, 
-        mensaje: "Conexión local activa." 
-      };
-    }
-  },
-
-  async get(accion) {
-    const url = this.getURL();
-    if (!url) return { status: "offline", datos: [] };
-
-    try {
-      const paramName = (typeof NEXUS_CONFIG !== 'undefined' && NEXUS_CONFIG.PARAM_GET) ? NEXUS_CONFIG.PARAM_GET : 'accion';
-      const response = await fetch(`${url}?${paramName}=${accion}`);
-      return await response.json();
-    } catch (error) {
-      console.error("Error al obtener datos:", error);
-      return { status: "offline", datos: [] };
-    }
-  }
 };
