@@ -459,13 +459,12 @@
 
                 if (data.estado === "correcto" || data.result === "success") {
                     const usuario = data.usuario || { nombre: "Usuario", rol: "Administrador" };
-                    alert(`¡Bienvenido, ${usuario.nombre} (${usuario.rol})! Acceso autorizado.`);
                     
                     // Guardamos la sesión actual en el navegador para futuras páginas
                     localStorage.setItem('nexus_usuario', JSON.stringify(usuario));
                     
-                    // Opcional: Redirigir a tu panel principal cuando lo crees
-                    // window.location.href = "dashboard.html";
+                    // Redirigir al panel principal creado (dashboard.html)
+                    window.location.href = "dashboard.html";
                 } else {
                     errorMsg.innerText = data.mensaje || "Correo o contraseña incorrectos.";
                     errorMsg.style.display = "block";
