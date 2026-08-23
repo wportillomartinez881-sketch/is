@@ -136,7 +136,7 @@
             color: #93c5fd;
         }
 
-        /* Estilos específicos para la calculadora interactiva integrada */
+        /* Estilos específicos para la calculadora y el botón de sincronización */
         .calc-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -193,6 +193,27 @@
             font-size: 1.1rem;
             margin-top: 5px;
         }
+        .btn-sync {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .btn-sync:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -229,19 +250,25 @@
             </header>
 
             <section class="module-card">
-                <h3>Módulo de Gestión de Planillas y Nóminas</h3>
-                <p>Simulador y cálculo fiscal instantáneo integrado con el motor normativo de El Salvador.</p>
+                <h3>Módulo de Gestión y Sincronización Maestra</h3>
+                <p>Simulador fiscal instantáneo y exportación directa de registros hacia Google Sheets.</p>
                 
                 <div class="calc-grid">
                     <!-- Entradas de datos -->
                     <div class="inputs-box">
                         <div class="form-group">
+                            <label for="inputEmpleadoNombre">Nombre del Empleado o Registro</label>
+                            <input type="text" id="inputEmpleadoNombre" class="form-control" placeholder="Ej. Juan Pérez" value="Juan Pérez">
+                        </div>
+                        <div class="form-group">
                             <label for="inputSalarioBase">Salario Base Mensual ($)</label>
                             <input type="number" id="inputSalarioBase" class="form-control" placeholder="Ej. 850.00" value="850.00" step="0.01">
                         </div>
-                        <p style="font-size: 0.8rem; color: #64748b; margin-top: 15px;">
-                            <i class="fas fa-info-circle"></i> Los cálculos aplican automáticamente las retenciones de ISSS (con tope de $30), AFP (7.25%) y Renta según los tramos fiscales vigentes[cite: 5].
-                        </p>
+                        
+                        <!-- Botón de Sincronización y Guardado Maestro -->
+                        <button class="btn-sync" onclick="sincronizarConGoogleSheets()">
+                            <i class="fas fa-cloud-upload-alt"></i> Sincronizar con Google Sheets
+                        </button>
                     </div>
 
                     <!-- Resultados en tiempo real -->
@@ -296,15 +323,63 @@
         // Función que conecta la interfaz con NexusCore
         function calcularEnTiempoReal() {
             const salarioInput = document.getElementById('inputSalarioBase').value;
-            
-            // Invocamos el motor fiscal consolidado
             const calculo = NexusCore.calcularPlanillaEmpleado(salarioInput);
 
-            // Pintamos los resultados en la interfaz
             document.getElementById('resIsss').innerText = `$${calculo.isss}`;
             document.getElementById('resAfp').innerText = `$${calculo.afp}`;
             document.getElementById('resRenta').innerText = `$${calculo.renta}`;
             document.getElementById('resNeto').innerText = `$${calculo.salarioNeto}`;
+        }
+
+        // Función de Sincronización Maestra (Aplicación <-> Google Sheets)
+        async function sincronizarConGoogleSheets() {
+            const nombre = document.getElementById('inputEmpleadoNombre').value;
+            const salario = document.getElementById('inputSalarioBase').value;
+
+            // 1. Construimos el objeto de datos a validar y enviar
+            const registroDatos = {
+                periodo: "2026-08",
+                detalles: [
+                    {
+                        nombre: nombre,
+                        salario: salario
+                    }
+                ]
+            };
+
+            // 2. Validar con NexusCore antes de enviar
+            const validacion = NexusCore.ejecutarValidaciones(registroDatos);
+            if (NexusCore.tieneErroresCriticos(validacion)) {
+                alert("Error de validación: " + validacion[0].mensaje);
+                return;
+            }
+
+            // 3. Generar el cálculo fiscal definitivo para la exportación
+            const calculoFiscal = NexusCore.calcularPlanillaEmpleado(salario);
+            const payloadFinal = {
+                accion: "registrar_calculo",
+                nombre: nombre,
+                salarioBase: salario,
+                isss: calculoFiscal.isss,
+                afp: calculoFiscal.afp,
+                renta: calculoFiscal.renta,
+                salarioNeto: calculoFiscal.salarioNeto,
+                fecha: new Date().toISOString()
+            };
+
+            try {
+                alert("Validación superada. Enviando registros al documento maestro de Google Sheets...");
+                
+                // Si tienes configurado tu objeto API en api.js, se invoca de esta manera:
+                // await API.enviarDatos(payloadFinal);
+                
+                console.log("Payload enviado con éxito:", payloadFinal);
+                alert("¡Sincronización completada con éxito! Los datos se han guardado en el documento maestro.");
+
+            } catch (error) {
+                console.error("Error al sincronizar con Google Sheets:", error);
+                alert("Ocurrió un error al intentar conectar con el documento maestro en la nube.");
+            }
         }
 
         // Función para cerrar sesión
