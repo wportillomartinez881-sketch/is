@@ -402,7 +402,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                <button type="submit" class="btn btn-primary" id="loginBtn">Iniciar Sesión</button>
                 <div id="error-msg">Correo o contraseña incorrectos.</div>
             </form>
 
@@ -417,7 +417,7 @@
         </div>
     </div>
 
-    <!-- Script de Interactividad y Validación con la Base de Datos -->
+    <!-- Script de Interactividad y Conexión con Google Sheets -->
     <script>
         // Efecto de luz dinámico siguiendo el cursor sobre la tarjeta principal
         const mainCard = document.getElementById('mainCard');
@@ -429,39 +429,54 @@
             mainCard.style.setProperty('--mouse-y', `${y}px`);
         });
 
-        // Base de datos sincronizada con la 3era página de tu registro (Usuarios)
-        const usuariosAutorizados = [
-            {
-                email: "wportillomartinez881@gmail.com",
-                password: "12345678",
-                nombre: "Esteban Torres",
-                rol: "Administrador"
-            },
-            {
-                email: "prueba002@nexus.test",
-                password: "6c745d8f5fd966f1483f29896fd7de24b79848d0e97bc5ced8a49c09c6e1cbfb170e0acbb8a24c67912a61eb8734655a",
-                nombre: "Usuario Prueba 002",
-                rol: "Administrador"
-            }
-        ];
+        // URL de tu Web App de Google Apps Script (Versión 25)
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoCo98Z-eYWrQfNZOGzUByhF9Y1Bcb1QqMh0akVPgwYUdWC8xIg5ZqmWGCzaD0T5SB/exec";
 
-        // Lógica de validación contra los datos reales
-        function validarLogin(event) {
+        // Lógica de validación conectada directamente a la hoja de Google Sheets
+        async function validarLogin(event) {
             event.preventDefault();
             const emailInput = document.getElementById('email').value.trim();
             const passwordInput = document.getElementById('password').value.trim();
             const errorMsg = document.getElementById('error-msg');
+            const loginBtn = document.getElementById('loginBtn');
 
-            const usuarioEncontrado = usuariosAutorizados.find(
-                user => user.email === emailInput && user.password === passwordInput
-            );
+            errorMsg.style.display = "none";
+            loginBtn.innerText = "Verificando...";
+            loginBtn.disabled = true;
 
-            if (usuarioEncontrado) {
-                errorMsg.style.display = "none";
-                alert(`¡Bienvenido, ${usuarioEncontrado.nombre} (${usuarioEncontrado.rol})! Acceso autorizado.`);
-                // Aquí puedes agregar la redirección a tu panel o dashboard principal cuando lo tengas listo
-            } else {
+            try {
+                const respuesta = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        accion: "iniciar_sesion",
+                        correo: emailInput,
+                        password: passwordInput
+                    })
+                });
+
+                const data = await respuesta.json();
+
+                if (data.estado === "correcto" || data.result === "success") {
+                    const usuario = data.usuario || { nombre: "Usuario", rol: "Administrador" };
+                    alert(`¡Bienvenido, ${usuario.nombre} (${usuario.rol})! Acceso autorizado.`);
+                    
+                    // Guardamos la sesión actual en el navegador para futuras páginas
+                    localStorage.setItem('nexus_usuario', JSON.stringify(usuario));
+                    
+                    // Opcional: Redirigir a tu panel principal cuando lo crees
+                    // window.location.href = "dashboard.html";
+                } else {
+                    errorMsg.innerText = data.mensaje || "Correo o contraseña incorrectos.";
+                    errorMsg.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Error de conexión:", err);
+                errorMsg.innerText = "Error al conectar con la base de datos de Google Sheets.";
                 errorMsg.style.display = "block";
+            } finally {
+                loginBtn.innerText = "Iniciar Sesión";
+                loginBtn.disabled = false;
             }
         }
     </script>
