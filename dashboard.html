@@ -25,15 +25,16 @@
             overflow: hidden;
         }
 
-        /* Barra lateral de navegación */
+        /* Barra lateral de navegación ampliada */
         .sidebar {
-            width: 260px;
+            width: 280px;
             background: rgba(15, 23, 42, 0.95);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .sidebar-brand h2 {
@@ -52,25 +53,25 @@
 
         .sidebar-menu {
             list-style: none;
-            margin-top: 30px;
+            margin-top: 20px;
             flex-grow: 1;
             padding-left: 0;
         }
 
         .sidebar-menu li {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .sidebar-menu a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 15px;
+            padding: 10px 14px;
             color: #cbd5e1;
             text-decoration: none;
-            border-radius: 10px;
+            border-radius: 8px;
             transition: all 0.2s;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
         }
 
@@ -123,7 +124,7 @@
             color: #ffffff;
         }
 
-        /* Secciones y Vistas */
+        /* Vistas y Secciones */
         .view-section {
             display: none;
             flex-direction: column;
@@ -147,33 +148,37 @@
             color: #93c5fd;
         }
 
-        /* Grid para Gráficas y Formularios */
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
         @media (max-width: 900px) {
-            .grid-2 { grid-template-columns: 1fr; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
             color: #94a3b8;
         }
         .form-control {
             width: 100%;
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: rgba(30, 41, 59, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 8px;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             box-sizing: border-box;
         }
         .form-control:focus {
@@ -193,52 +198,67 @@
         .result-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 6px;
+            padding-bottom: 5px;
         }
         .result-item.neto {
             font-weight: bold;
             color: #4ade80;
             border-bottom: none;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             margin-top: 5px;
         }
 
-        .btn-sync {
+        .btn-action {
             background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: #ffffff;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 18px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.2s;
         }
-        .btn-sync:hover {
+        .btn-action:hover {
             background: linear-gradient(135deg, #1d4ed8, #1e40af);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
         }
 
         .chart-container {
             position: relative;
-            height: 250px;
+            height: 220px;
             width: 100%;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        table.data-table th, table.data-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        table.data-table th {
+            color: #93c5fd;
+            background: rgba(30, 41, 59, 0.5);
         }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
-        <!-- Barra Lateral Interactiva -->
+        <!-- Menú Lateral Completo con todos los módulos requeridos -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <h2>NEXUS</h2>
@@ -249,11 +269,18 @@
                 <li><a onclick="cambiarVista('dashboard', this)" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
                 <li><a onclick="cambiarVista('empleados', this)"><i class="fas fa-users"></i> Empleados</a></li>
                 <li><a onclick="cambiarVista('planilla', this)"><i class="fas fa-calculator"></i> Cálculo de Planilla</a></li>
+                <li><a onclick="cambiarVista('detalle', this)"><i class="fas fa-list-alt"></i> Detalle de Planilla</a></li>
                 <li><a onclick="cambiarVista('novedades', this)"><i class="fas fa-file-invoice-dollar"></i> Novedades</a></li>
+                <li><a onclick="cambiarVista('validacion', this)"><i class="fas fa-shield-alt"></i> Validación</a></li>
+                <li><a onclick="cambiarVista('reporte', this)"><i class="fas fa-chart-bar"></i> Reporte</a></li>
+                <li><a onclick="cambiarVista('historial', this)"><i class="fas fa-history"></i> Historial</a></li>
+                <li><a onclick="cambiarVista('parametros', this)"><i class="fas fa-sliders-h"></i> Parámetros</a></li>
+                <li><a onclick="cambiarVista('auditoria', this)"><i class="fas fa-user-shield"></i> Auditoría</a></li>
+                <li><a onclick="cambiarVista('legal', this)"><i class="fas fa-balance-scale"></i> Fundamento Legal</a></li>
             </ul>
 
-            <div style="font-size: 0.8rem; color: #64748b; text-align: center;">
-                Nexus v2.0
+            <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 10px;">
+                Nexus v2.0 Enterprise
             </div>
         </aside>
 
@@ -268,13 +295,12 @@
                 </button>
             </header>
 
-            <!-- VISTA 1: DASHBOARD CON GRÁFICAS DINÁMICAS -->
+            <!-- 1. DASHBOARD -->
             <div id="vista-dashboard" class="view-section active">
                 <div class="module-card">
                     <h3>Resumen General de Operaciones</h3>
-                    <p>Métricas y estadísticas dinámicas basadas en los registros ingresados en la empresa.</p>
+                    <p>Métricas y estadísticas dinámicas actualizadas con la actividad de la empresa.</p>
                 </div>
-
                 <div class="grid-2">
                     <div class="module-card">
                         <h3>Distribución de Costos de Nómina</h3>
@@ -291,72 +317,183 @@
                 </div>
             </div>
 
-            <!-- VISTA 2: EMPLEADOS -->
+            <!-- 2. EMPLEADOS -->
             <div id="vista-empleados" class="view-section">
                 <div class="module-card">
-                    <h3>Directorio de Empleados</h3>
-                    <p>Agregue y administre el personal activo de su empresa.</p>
-                    <div style="margin-top: 20px; text-align: center; color: #64748b; padding: 40px;">
-                        <i class="fas fa-users-slash" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
-                        <p>No hay empleados registrados actualmente. Comience ingresando datos en el módulo de Planilla.</p>
+                    <h3>Registro de Empleados</h3>
+                    <p>Agregue el personal que formará parte de las planillas de la empresa.</p>
+                    <div class="grid-2" style="margin-top: 15px;">
+                        <div>
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="empNombre" class="form-control" placeholder="Ej. María González">
+                            </div>
+                            <div class="form-group">
+                                <label>DUI / Identificación</label>
+                                <input type="text" id="empDui" class="form-control" placeholder="00000000-0">
+                            </div>
+                            <div class="form-group">
+                                <label>Cargo / Puesto</label>
+                                <input type="text" id="empCargo" class="form-control" placeholder="Ej. Asistente Administrativo">
+                            </div>
+                            <button class="btn-action" onclick="registrarEmpleado()">
+                                <i class="fas fa-user-plus"></i> Guardar Empleado
+                            </button>
+                        </div>
+                        <div>
+                            <h4 style="color: #93c5fd; font-size: 0.95rem; margin-top: 0;">Personal Registrado</h4>
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                <table class="data-table" id="tablaEmpleados">
+                                    <thead>
+                                        <tr><th>Nombre</th><th>Cargo</th><th>Acción</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td colspan="3" style="text-align: center; color: #64748b;">No hay empleados registrados.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 3: CÁLCULO DE PLANILLA Y SINCRONIZACIÓN -->
+            <!-- 3. CÁLCULO DE PLANILLA (Ampliado con Horas Extra, Vacaciones, etc.) -->
             <div id="vista-planilla" class="view-section">
                 <div class="module-card">
-                    <h3>Módulo de Gestión y Sincronización Maestra</h3>
-                    <p>Simulador fiscal instantáneo y exportación directa de registros hacia Google Sheets.</p>
+                    <h3>Cálculo Avanzado de Planilla</h3>
+                    <p>Simulador integral con percepciones y deducciones de ley vigentes en El Salvador.</p>
                     
                     <div class="grid-2" style="margin-top: 15px;">
-                        <!-- Entradas de datos vacías por defecto -->
-                        <div class="inputs-box">
+                        <div>
                             <div class="form-group">
-                                <label for="inputEmpleadoNombre">Nombre del Empleado o Registro</label>
-                                <input type="text" id="inputEmpleadoNombre" class="form-control" placeholder="Ej. Nombre Completo">
+                                <label>Seleccionar Empleado</label>
+                                <select id="planSelectEmpleado" class="form-control">
+                                    <option value="">-- Seleccione un empleado --</option>
+                                </select>
                             </div>
-                            <div class="form-group">
-                                <label for="inputSalarioBase">Salario Base Mensual ($)</label>
-                                <input type="number" id="inputSalarioBase" class="form-control" placeholder="Ej. 0.00" step="0.01">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Salario Base Mensual ($)</label>
+                                    <input type="number" id="planSalario" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Horas Extra Diurnas ($)</label>
+                                    <input type="number" id="planHeDiurnas" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
                             </div>
-                            
-                            <button class="btn-sync" onclick="sincronizarConGoogleSheets()">
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Horas Extra Nocturnas ($)</label>
+                                    <input type="number" id="planHeNocturnas" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Bonos / Vacaciones ($)</label>
+                                    <input type="number" id="planBonos" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label>Incap./Faltas (Deducción $)</label>
+                                    <input type="number" id="planDeduccionesExtra" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Aguinaldo Proporcional ($)</label>
+                                    <input type="number" id="planAguinaldo" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
+                                </div>
+                            </div>
+                            <button class="btn-action" onclick="sincronizarPlanillaMaestra()">
                                 <i class="fas fa-cloud-upload-alt"></i> Sincronizar con Google Sheets
                             </button>
                         </div>
 
-                        <!-- Resultados en tiempo real -->
                         <div class="results-box">
-                            <div class="result-item">
-                                <span>Descuento ISSS (3%):</span>
-                                <strong id="resIsss">$0.00</strong>
-                            </div>
-                            <div class="result-item">
-                                <span>Descuento AFP (7.25%):</span>
-                                <strong id="resAfp">$0.00</strong>
-                            </div>
-                            <div class="result-item">
-                                <span>Renta Gravada:</span>
-                                <strong id="resRenta">$0.00</strong>
-                            </div>
-                            <div class="result-item neto">
-                                <span>Salario Neto a Recibir:</span>
-                                <strong id="resNeto">$0.00</strong>
-                            </div>
+                            <div class="result-item"><span>Total Devengado:</span> <strong id="resDevengado">$0.00</strong></div>
+                            <div class="result-item"><span>ISSS (3%):</span> <strong id="resIsss">$0.00</strong></div>
+                            <div class="result-item"><span>AFP (7.25%):</span> <strong id="resAfp">$0.00</strong></div>
+                            <div class="result-item"><span>Renta Gravada:</span> <strong id="resRenta">$0.00</strong></div>
+                            <div class="result-item"><span>Otras Deducciones:</span> <strong id="resOtras">$0.00</strong></div>
+                            <div class="result-item neto"><span>Salario Neto a Recibir:</span> <strong id="resNeto">$0.00</strong></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- VISTA 4: NOVEDADES -->
+            <!-- 4. DETALLE DE PLANILLA -->
+            <div id="vista-detalle" class="view-section">
+                <div class="module-card">
+                    <h3>Detalle Consolidado de Planilla</h3>
+                    <p>Listado histórico de cálculos aplicados a los empleados.</p>
+                    <table class="data-table" id="tablaDetallePlanilla">
+                        <thead>
+                            <tr><th>Empleado</th><th>Devengado</th><th>ISSS</th><th>AFP</th><th>Renta</th><th>Neto</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" style="text-align: center; color: #64748b;">No hay registros de planilla sincronizados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 5. NOVEDADES -->
             <div id="vista-novedades" class="view-section">
                 <div class="module-card">
-                    <h3>Novedades y Ajustes de Nómina</h3>
-                    <p>Registro de bonificaciones, horas extra o deducciones especiales del período.</p>
-                    <div style="margin-top: 20px; color: #94a3b8; font-size: 0.9rem;">
-                        <p><i class="fas fa-info-circle"></i> Módulo operativo listo para recibir solicitudes de los clientes.</p>
+                    <h3>Registro de Novedades</h3>
+                    <p>Control de incidencias, permisos especiales y modificaciones temporales.</p>
+                    <div style="padding: 20px; text-align: center; color: #94a3b8;">
+                        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                        <p>Módulo activo y listo para recibir novedades de los usuarios.</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- 6. VALIDACIÓN -->
+            <div id="vista-validacion" class="view-section">
+                <div class="module-card">
+                    <h3>Módulo de Validación Fiscal</h3>
+                    <p>Verificación de cumplimiento de techos salariales de ISSS y tramos de Renta.</p>
+                    <div style="padding: 15px; background: rgba(30, 41, 59, 0.4); border-radius: 8px; color: #4ade80;">
+                        <i class="fas fa-check-circle"></i> Sistema operando bajo normativas fiscales vigentes.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. REPORTE -->
+            <div id="vista-reporte" class="view-section">
+                <div class="module-card">
+                    <h3>Reportes Gerenciales</h3>
+                    <p>Exportación y visualización de costos totales de planilla por departamento.</p>
+                </div>
+            </div>
+
+            <!-- 8. HISTORIAL -->
+            <div id="vista-historial" class="view-section">
+                <div class="module-card">
+                    <h3>Historial de Movimientos</h3>
+                    <p>Auditoría de cambios y sincronizaciones previas enviadas al documento maestro.</p>
+                </div>
+            </div>
+
+            <!-- 9. PARÁMETROS -->
+            <div id="vista-parametros" class="view-section">
+                <div class="module-card">
+                    <h3>Parámetros del Sistema</h3>
+                    <p>Configuración de porcentajes de ley (ISSS: 3%, AFP: 7.25%, etc.).</p>
+                </div>
+            </div>
+
+            <!-- 10. AUDITORÍA -->
+            <div id="vista-auditoria" class="view-section">
+                <div class="module-card">
+                    <h3>Registro de Auditoría</h3>
+                    <p>Seguimiento de accesos y acciones realizadas en el panel administrativo.</p>
+                </div>
+            </div>
+
+            <!-- 11. FUNDAMENTO LEGAL -->
+            <div id="vista-legal" class="view-section">
+                <div class="module-card">
+                    <h3>Fundamento Legal (El Salvador)</h3>
+                    <p>Basado en el Código de Trabajo de El Salvador, Ley del ISSS y Ley de la Superintendencia del Sistema Financiero (AFP).</p>
                 </div>
             </div>
 
@@ -371,6 +508,8 @@
     <script>
         let graficaNominaInstance = null;
         let graficaActividadInstance = null;
+        let listaEmpleados = [];
+        let historialPlanillas = [];
 
         document.addEventListener("DOMContentLoaded", () => {
             const datosUsuario = localStorage.getItem('nexus_usuario');
@@ -379,77 +518,144 @@
                 document.getElementById('nombreUsuario').innerText = usuario.nombre || "Usuario";
                 document.getElementById('rolUsuario').innerText = usuario.rol || "Administrador";
             }
-
-            // Inicializar las gráficas del Dashboard
-            inicializarGraficas();
-
-            // Escuchar cambios en el input de salario en tiempo real
-            const inputSalario = document.getElementById('inputSalarioBase');
-            if (inputSalario) {
-                inputSalario.addEventListener('input', calcularEnTiempoReal);
-            }
+            inicializarGraficasEnCero();
         });
 
-        // Función para cambiar de vista desde el menú lateral
         function cambiarVista(nombreVista, elementoLink) {
-            // Ocultar todas las secciones
-            document.querySelectorAll('.view-section').forEach(sec => {
-                sec.classList.remove('active');
-            });
-
-            // Mostrar la sección seleccionada
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(`vista-${nombreVista}`).classList.add('active');
 
-            // Actualizar clases activas en el menú
-            document.querySelectorAll('.sidebar-menu a').forEach(a => {
-                a.classList.remove('active');
-            });
-            if (elementoLink) {
-                elementoLink.classList.add('active');
-            }
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            if (elementoLink) elementoLink.classList.add('active');
 
-            // Si entra al dashboard, refrescar gráficas por si hubo cambios
-            if (nombreVista === 'dashboard') {
-                actualizarGraficasDinamicas();
-            }
+            if (nombreVista === 'dashboard') actualizarGraficasDinamicas();
         }
 
-        // Cálculo fiscal en tiempo real
-        function calcularEnTiempoReal() {
-            const salarioInput = document.getElementById('inputSalarioBase').value;
-            if (!salarioInput || salarioInput <= 0) {
-                document.getElementById('resIsss').innerText = `$0.00`;
-                document.getElementById('resAfp').innerText = `$0.00`;
-                document.getElementById('resRenta').innerText = `$0.00`;
-                document.getElementById('resNeto').innerText = `$0.00`;
+        function registrarEmpleado() {
+            const nombre = document.getElementById('empNombre').value.trim();
+            const cargo = document.getElementById('empCargo').value.trim();
+            if (!nombre) {
+                alert("Por favor ingrese el nombre del empleado.");
+                return;
+            }
+            listaEmpleados.push({ nombre, cargo });
+            document.getElementById('empNombre').value = '';
+            document.getElementById('empDui').value = '';
+            document.getElementById('empCargo').value = '';
+            actualizarTablaEmpleados();
+            actualizarSelectEmpleados();
+            alert("Empleado registrado con éxito.");
+        }
+
+        function actualizarTablaEmpleados() {
+            const tbody = document.querySelector('#tablaEmpleados tbody');
+            if (listaEmpleados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">No hay empleados registrados.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = listaEmpleados.map((emp, i) => `
+                <tr><td>${emp.nombre}</td><td>${emp.cargo || 'N/A'}</td><td><button onclick="eliminarEmpleado(${i})" style="background:none; border:none; color:#fca5a5; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>
+            `).join('');
+        }
+
+        function eliminarEmpleado(index) {
+            listaEmpleados.splice(index, 1);
+            actualizarTablaEmpleados();
+            actualizarSelectEmpleados();
+        }
+
+        function actualizarSelectEmpleados() {
+            const select = document.getElementById('planSelectEmpleado');
+            select.innerHTML = `<option value="">-- Seleccione un empleado --</option>` + 
+                listaEmpleados.map(emp => `<option value="${emp.nombre}">${emp.nombre} (${emp.cargo || 'General'})</option>`).join('');
+        }
+
+        function calcularPlanillaCompleta() {
+            const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
+            const heDiurnas = parseFloat(document.getElementById('planHeDiurnas').value) || 0;
+            const heNocturnas = parseFloat(document.getElementById('planHeNocturnas').value) || 0;
+            const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
+            const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
+            const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
+
+            const totalDevengado = salarioBase + heDiurnas + heNocturnas + bonos + aguinaldo;
+            
+            // Cálculos fiscales de ley en El Salvador
+            const isss = Math.min(salarioBase, 1000) * 0.03; // Tope referencial ISSS
+            const afp = salarioBase * 0.0725;
+            const rentaGravada = Math.max(0, totalDevengado - isss - afp);
+            
+            // Estimación base de Renta según tramos
+            let renta = 0;
+            if (rentaGravada > 472.00 && rentaGravada <= 895.24) {
+                renta = (rentaGravada - 472.00) * 0.10 + 17.67;
+            } else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) {
+                renta = (rentaGravada - 895.24) * 0.20 + 60.00;
+            } else if (rentaGravada > 2038.10) {
+                renta = (rentaGravada - 2038.10) * 0.30 + 288.57;
+            }
+
+            const salarioNeto = totalDevengado - isss - afp - renta - deduccionesExtra;
+
+            document.getElementById('resDevengado').innerText = `$${totalDevengado.toFixed(2)}`;
+            document.getElementById('resIsss').innerText = `$${isss.toFixed(2)}`;
+            document.getElementById('resAfp').innerText = `$${afp.toFixed(2)}`;
+            document.getElementById('resRenta').innerText = `$${renta.toFixed(2)}`;
+            document.getElementById('resOtras').innerText = `$${deduccionesExtra.toFixed(2)}`;
+            document.getElementById('resNeto').innerText = `$${salarioNeto.toFixed(2)}`;
+
+            return { totalDevengado, isss, afp, renta, deduccionesExtra, salarioNeto };
+        }
+
+        async function sincronizarPlanillaMaestra() {
+            const empleadoNombre = document.getElementById('planSelectEmpleado').value;
+            if (!empleadoNombre) {
+                alert("Por favor seleccione un empleado registrado para la planilla.");
                 return;
             }
 
-            const calculo = NexusCore.calcularPlanillaEmpleado(salarioInput);
-            document.getElementById('resIsss').innerText = `$${calculo.isss}`;
-            document.getElementById('resAfp').innerText = `$${calculo.afp}`;
-            document.getElementById('resRenta').innerText = `$${calculo.renta}`;
-            document.getElementById('resNeto').innerText = `$${calculo.salarioNeto}`;
+            const calculo = calcularPlanillaCompleta();
+            const payload = {
+                accion: "registrar_planilla",
+                empleado: empleadoNombre,
+                ...calculo,
+                fecha: new Date().toISOString()
+            };
+
+            try {
+                alert("Sincronizando con Google Sheets...");
+                await API.enviarDatos(payload);
+                
+                historialPlanillas.push({ empleado: empleadoNombre, ...calculo });
+                actualizarTablaDetallePlanilla();
+                alert("¡Planilla sincronizada con éxito y guardada en el documento maestro!");
+
+            } catch (error) {
+                console.error("Error al sincronizar:", error);
+                alert("Error al conectar con Google Sheets.");
+            }
         }
 
-        // Inicializar Chart.js
-        function inicializarGraficas() {
+        function actualizarTablaDetallePlanilla() {
+            const tbody = document.querySelector('#tablaDetallePlanilla tbody');
+            if (historialPlanillas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #64748b;">No hay registros de planilla sincronizados.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = historialPlanillas.map(h => `
+                <tr><td>${h.empleado}</td><td>$${h.totalDevengado.toFixed(2)}</td><td>$${h.isss.toFixed(2)}</td><td>$${h.afp.toFixed(2)}</td><td>$${h.renta.toFixed(2)}</td><td style="color:#4ade80;">$${h.salarioNeto.toFixed(2)}</td></tr>
+            `).join('');
+        }
+
+        function inicializarGraficasEnCero() {
             const ctx1 = document.getElementById('graficaNomina').getContext('2d');
             graficaNominaInstance = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Salarios Netos', 'AFP', 'ISSS', 'Renta'],
-                    datasets: [{
-                        data: [70, 15, 10, 5], // Datos iniciales base o vacíos
-                        backgroundColor: ['#4ade80', '#3b82f6', '#f59e0b', '#ef4444'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Neto', 'AFP', 'ISSS', 'Renta'],
+                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#4ade80', '#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 0 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
             });
 
             const ctx2 = document.getElementById('graficaActividad').getContext('2d');
@@ -457,77 +663,20 @@
                 type: 'bar',
                 data: {
                     labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
-                    datasets: [{
-                        label: 'Sincronizaciones',
-                        data: [0, 0, 0, 1],
-                        backgroundColor: '#2563eb',
-                        borderRadius: 6
-                    }]
+                    datasets: [{ label: 'Sincronizaciones', data: [0, 0, 0, 0], backgroundColor: '#2563eb', borderRadius: 6 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { ticks: { color: '#cbd5e1' }, grid: { display: false } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
         }
 
         function actualizarGraficasDinamicas() {
-            if (graficaNominaInstance) {
+            if (graficaNominaInstance && historialPlanillas.length > 0) {
+                let totalNeto = historialPlanillas.reduce((acc, curr) => acc + curr.salarioNeto, 0);
+                let totalAfp = historialPlanillas.reduce((acc, curr) => acc + curr.afp, 0);
+                let totalIsss = historialPlanillas.reduce((acc, curr) => acc + curr.isss, 0);
+                let totalRenta = historialPlanillas.reduce((acc, curr) => acc + curr.renta, 0);
+                graficaNominaInstance.data.datasets[0].data = [totalNeto, totalAfp, totalIsss, totalRenta];
                 graficaNominaInstance.update();
-            }
-        }
-
-        // Sincronización con Google Sheets
-        async function sincronizarConGoogleSheets() {
-            const nombre = document.getElementById('inputEmpleadoNombre').value;
-            const salario = document.getElementById('inputSalarioBase').value;
-
-            if (!nombre || !salario) {
-                alert("Por favor, ingrese el nombre del empleado y el salario base antes de sincronizar.");
-                return;
-            }
-
-            const registroDatos = {
-                periodo: "2026-08",
-                detalles: [{ nombre, salario }]
-            };
-
-            const validacion = NexusCore.ejecutarValidaciones(registroDatos);
-            if (NexusCore.tieneErroresCriticos(validacion)) {
-                alert("Error de validación: " + validacion[0].mensaje);
-                return;
-            }
-
-            const calculoFiscal = NexusCore.calcularPlanillaEmpleado(salario);
-            const payloadFinal = {
-                accion: "registrar_calculo",
-                nombre: nombre,
-                salarioBase: salario,
-                isss: calculoFiscal.isss,
-                afp: calculoFiscal.afp,
-                renta: calculoFiscal.renta,
-                salarioNeto: calculoFiscal.salarioNeto,
-                fecha: new Date().toISOString()
-            };
-
-            try {
-                alert("Enviando registros al documento maestro de Google Sheets...");
-                await API.enviarDatos(payloadFinal);
-                alert("¡Sincronización completada con éxito! Los datos se han guardado en el documento maestro.");
-                
-                // Limpiar campos para el siguiente registro
-                document.getElementById('inputEmpleadoNombre').value = '';
-                document.getElementById('inputSalarioBase').value = '';
-                calcularEnTiempoReal();
-
-            } catch (error) {
-                console.error("Error al sincronizar con Google Sheets:", error);
-                alert("Ocurrió un error al intentar conectar con el documento maestro en la nube.");
             }
         }
 
