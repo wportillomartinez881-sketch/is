@@ -1,5 +1,5 @@
 /* ==========================================
-   1. ESTILOS GLOBALES Y FONDO ANIMADO
+   1. ESTILOS GLOBALES Y FONDO ANIMADO INTERactivo
    ================================---------- */
 :root {
     --bg-base: #030712;
@@ -19,12 +19,13 @@
 }
 
 body {
-    background-color: var(--bg-base);
+    background-color: #0400ff;
     background-image: 
-        radial-gradient(at 10% 20%, var(--accent-purple) 0px, transparent 50%),
-        radial-gradient(at 90% 80%, var(--accent-blue) 0px, transparent 50%),
-        radial-gradient(at 50% 50%, var(--primary-blue) 0px, transparent 70%);
+        radial-gradient(circle at 15% 20%, #a700ff 0%, transparent 50%),
+        radial-gradient(circle at 85% 80%, #2000eb 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #0400ff 0%, transparent 70%);
     background-size: 200% 200%;
+    animation: waveBackground 12s ease infinite alternate;
     color: var(--text-main);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
@@ -32,48 +33,30 @@ body {
     position: relative;
 }
 
-/* Efecto de ondas fluidas de fondo */
-body::before {
-    content: "";
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    z-index: -2;
-    background: conic-gradient(
-        from 0deg at 50% 50%, 
-        #0400ff 0deg, 
-        #2000eb 120deg, 
-        #a700ff 240deg, 
-        #0400ff 360deg
-    );
-    opacity: 0.35;
-    filter: blur(90px);
-    animation: waveFlow 18s ease infinite alternate;
-}
-
-@keyframes waveFlow {
+@keyframes waveBackground {
     0% {
-        transform: scale(1) rotate(0deg) translate(0px, 0px);
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
     }
     50% {
-        transform: scale(1.15) rotate(180deg) translate(-20px, 15px);
+        background-position: 100% 50%;
+        filter: hue-rotate(20deg);
     }
     100% {
-        transform: scale(1) rotate(360deg) translate(15px, -20px);
+        background-position: 0% 50%;
+        filter: hue-rotate(0deg);
     }
 }
 
-/* Textura de grano estético (Grain) */
+/* Textura de grano estético (Grain) sutil */
 .bg-grain {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: -1;
-    opacity: 0.05;
+    z-index: 9999;
+    opacity: 0.04;
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
