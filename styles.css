@@ -3,9 +3,9 @@
    ================================---------- */
 :root {
     --bg-base: #030712;
-    --primary-blue: #1e3a8a;
-    --accent-blue: #3b82f6;
-    --accent-purple: #9333ea;
+    --primary-blue: #0400ff;
+    --accent-blue: #2000eb;
+    --accent-purple: #a700ff;
     --text-main: #f3f4f6;
     --text-muted: #9ca3af;
     --card-bg: rgba(15, 23, 42, 0.75);
@@ -21,20 +21,61 @@
 body {
     background-color: var(--bg-base);
     background-image: 
-        radial-gradient(circle at 20% 30%, rgba(30, 58, 138, 0.45) 0%, transparent 45%),
-        radial-gradient(circle at 80% 70%, rgba(147, 51, 234, 0.35) 0%, transparent 45%);
+        radial-gradient(at 10% 20%, var(--accent-purple) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, var(--accent-blue) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, var(--primary-blue) 0px, transparent 70%);
     background-size: 200% 200%;
-    animation: waveBackground 15s ease infinite;
     color: var(--text-main);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+    position: relative;
 }
 
-@keyframes waveBackground {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* Efecto de ondas fluidas de fondo */
+body::before {
+    content: "";
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -2;
+    background: conic-gradient(
+        from 0deg at 50% 50%, 
+        #0400ff 0deg, 
+        #2000eb 120deg, 
+        #a700ff 240deg, 
+        #0400ff 360deg
+    );
+    opacity: 0.35;
+    filter: blur(90px);
+    animation: waveFlow 18s ease infinite alternate;
+}
+
+@keyframes waveFlow {
+    0% {
+        transform: scale(1) rotate(0deg) translate(0px, 0px);
+    }
+    50% {
+        transform: scale(1.15) rotate(180deg) translate(-20px, 15px);
+    }
+    100% {
+        transform: scale(1) rotate(360deg) translate(15px, -20px);
+    }
+}
+
+/* Textura de grano estético (Grain) */
+.bg-grain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    opacity: 0.05;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* ==========================================
