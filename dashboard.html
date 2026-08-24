@@ -3,901 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal - NEXUS S.A. de C.V.</title>
-    <!-- FontAwesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para las gráficas dinámicas -->
+    <title>NEXUS Servicios Empresariales - Dashboard</title>
+    <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background-color: #030712;
-            color: #334155;
+        :root {
+            --bg-base: #030712;
+            --primary-blue: #1e3a8a;
+            --accent-blue: #3b82f6;
+            --accent-purple: #9333ea;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(30, 58, 138, 0.45) 0%, transparent 45%),
+                radial-gradient(circle at 80% 70%, rgba(147, 51, 234, 0.35) 0%, transparent 45%);
+            background-size: 200% 200%;
+            color: var(--text-main);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .dashboard-container {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
         }
 
-        /* Barra lateral de navegación ampliada */
-        .sidebar {
-            width: 280px;
-            background: rgba(15, 23, 42, 0.95);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        header {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
-            overflow-y: auto;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .sidebar-brand h2 {
-            color: #ffffff;
-            font-size: 1.5rem;
-            margin-bottom: 5px;
-            background: linear-gradient(to right, #ffffff, #93c5fd);
+        header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .sidebar-brand p {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            margin-top: 20px;
-            flex-grow: 1;
-            padding-left: 0;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 6px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            color: #cbd5e1;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: rgba(37, 99, 235, 0.2);
-            color: #ffffff;
-            border-left: 4px solid #2563eb;
-        }
-
-        /* Área de contenido principal */
-        .main-content {
-            flex-grow: 1;
-            background: #0f172a;
-            color: #ffffff;
-            overflow-y: auto;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(15, 23, 42, 0.6);
-            padding: 15px 25px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .user-info {
-            font-size: 0.9rem;
-            color: #cbd5e1;
-        }
-
-        .btn-logout {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 8px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .btn-logout:hover {
-            background: rgba(239, 68, 68, 0.4);
-            color: #ffffff;
-        }
-
-        .view-section {
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .view-section.active {
-            display: flex;
-        }
-
-        .module-card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 25px;
-        }
-
-        .module-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            color: #93c5fd;
-        }
-
-        .grid-2 {
+        .bento-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
-        @media (max-width: 900px) {
-            .grid-2 { grid-template-columns: 1fr; }
+
+        .bento-card {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.6);
+            box-shadow: 0 10px 30px -10px rgba(30, 58, 138, 0.5);
+        }
+
+        .bento-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .bento-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 1rem;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 4px;
-            font-size: 0.8rem;
-            color: #94a3b8;
-        }
-        .form-control {
-            width: 100%;
-            padding: 8px 12px;
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            color: #ffffff;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-
-        .results-box {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-        }
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 5px;
-        }
-        .result-item.neto {
-            font-weight: bold;
-            color: #4ade80;
-            border-bottom: none;
-            font-size: 1.05rem;
-            margin-top: 5px;
-        }
-
-        .btn-action {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: #ffffff;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-        .btn-action:hover {
-            background: linear-gradient(135deg, #1d4ed8, #1e40af);
-        }
-
-        .chart-container {
-            position: relative;
-            height: 220px;
-            width: 100%;
-        }
-
-        table.data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
             font-size: 0.85rem;
-        }
-        table.data-table th, table.data-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        table.data-table th {
-            color: #93c5fd;
-            background: rgba(30, 41, 59, 0.5);
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
         }
 
-        .legal-content {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #cbd5e1;
+        .form-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            color: white;
+            outline: none;
         }
-        .legal-content h4 {
-            color: #93c5fd;
-            margin-top: 15px;
-            margin-bottom: 5px;
+
+        .form-group input:focus {
+            border-color: var(--accent-blue);
         }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-container">
-        <!-- Menú Lateral -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <h2>NEXUS</h2>
-                <p>Panel de Control Corporativo</p>
-            </div>
+    <div class="app-container">
+        <header>
+            <h1>NEXUS Servicios Empresariales</h1>
+            <div id="user-info" style="color: var(--text-muted); font-size: 0.9rem;">Panel Administrativo</div>
+        </header>
+
+        <section>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Módulos de Gestión</h2>
+            <p style="color: var(--text-muted);">Administra empleados, novedades y planillas sincronizadas con Google Sheets.</p>
             
-            <ul class="sidebar-menu">
-                <li><a onclick="cambiarVista('dashboard', this)" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
-                <li><a onclick="cambiarVista('empleados', this)"><i class="fas fa-users"></i> Empleados</a></li>
-                <li><a onclick="cambiarVista('planilla', this)"><i class="fas fa-calculator"></i> Cálculo de Planilla</a></li>
-                <li><a onclick="cambiarVista('detalle', this)"><i class="fas fa-list-alt"></i> Detalle de Planilla</a></li>
-                <li><a onclick="cambiarVista('novedades', this)"><i class="fas fa-file-invoice-dollar"></i> Novedades</a></li>
-                <li><a onclick="cambiarVista('validacion', this)"><i class="fas fa-shield-alt"></i> Validación</a></li>
-                <li><a onclick="cambiarVista('reporte', this)"><i class="fas fa-chart-bar"></i> Reporte</a></li>
-                <li><a onclick="cambiarVista('historial', this)"><i class="fas fa-history"></i> Historial</a></li>
-                <li><a onclick="cambiarVista('parametros', this)"><i class="fas fa-sliders-h"></i> Parámetros</a></li>
-                <li><a onclick="cambiarVista('auditoria', this)"><i class="fas fa-user-shield"></i> Auditoría</a></li>
-                <li><a onclick="cambiarVista('legal', this)"><i class="fas fa-balance-scale"></i> Fundamento Legal</a></li>
-            </ul>
-
-            <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 10px;">
-                Nexus v2.0 Enterprise
-            </div>
-        </aside>
-
-        <!-- Contenido Central -->
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="user-info">
-                    Bienvenido, <strong id="nombreUsuario">Usuario</strong> (<span id="rolUsuario">Administrador</span>)
-                </div>
-                <button class="btn-logout" onclick="cerrarSesion()">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </header>
-
-            <!-- 1. DASHBOARD -->
-            <div id="vista-dashboard" class="view-section active">
-                <div class="module-card">
-                    <h3>Resumen General de Operaciones</h3>
-                    <p>Métricas y estadísticas dinámicas basadas en los registros reales ingresados.</p>
-                </div>
-                <div class="grid-2">
-                    <div class="module-card">
-                        <h3>Distribución de Costos de Nómina</h3>
-                        <div class="chart-container">
-                            <canvas id="graficaNomina"></canvas>
-                        </div>
-                    </div>
-                    <div class="module-card">
-                        <h3>Actividad de Sincronizaciones</h3>
-                        <div class="chart-container">
-                            <canvas id="graficaActividad"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. EMPLEADOS -->
-            <div id="vista-empleados" class="view-section">
-                <div class="module-card">
+            <div class="bento-grid">
+                <!-- Tarjeta Registrar Empleado -->
+                <div class="bento-card">
                     <h3>Registro de Empleados</h3>
-                    <p>Agregue el personal y su salario base asignado para que esté disponible en planillas.</p>
-                    <div class="grid-2" style="margin-top: 15px;">
-                        <div>
-                            <div class="form-group">
-                                <label>Nombre Completo</label>
-                                <input type="text" id="empNombre" class="form-control" placeholder="Ej. Juan Pérez">
-                            </div>
-                            <div class="form-group">
-                                <label>DUI / Identificación</label>
-                                <input type="text" id="empDui" class="form-control" placeholder="00000000-0">
-                            </div>
-                            <div class="form-group">
-                                <label>Cargo / Puesto</label>
-                                <input type="text" id="empCargo" class="form-control" placeholder="Ej. Contador">
-                            </div>
-                            <div class="form-group">
-                                <label>Salario Base Mensual ($)</label>
-                                <input type="number" id="empSalario" class="form-control" placeholder="0.00" step="0.01" oninput="calcularValorHoraExtraEmpleado()">
-                            </div>
-                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 12px;">
-                                Valor estimado hora extra diurna: <strong id="lblValorHePreview" style="color: #4ade80;">$0.00</strong>
-                            </div>
-                            <button class="btn-action" onclick="registrarEmpleado()">
-                                <i class="fas fa-user-plus"></i> Guardar y Sincronizar Empleado
-                            </button>
-                        </div>
-                        <div>
-                            <h4 style="color: #93c5fd; font-size: 0.95rem; margin-top: 0;">Personal Registrado</h4>
-                            <div style="max-height: 280px; overflow-y: auto;">
-                                <table class="data-table" id="tablaEmpleados">
-                                    <thead>
-                                        <tr><th>Nombre</th><th>Cargo</th><th>Salario Base</th><th>Acción</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td colspan="4" style="text-align: center; color: #64748b;">No hay empleados registrados.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <p>Agrega colaboradores al sistema institucional.</p>
+                    <div class="form-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="emp-nombre" placeholder="Ej. Juan Pérez">
                     </div>
-                </div>
-            </div>
-
-            <!-- 3. CÁLCULO DE PLANILLA -->
-            <div id="vista-planilla" class="view-section">
-                <div class="module-card">
-                    <h3>Cálculo Avanzado de Planilla</h3>
-                    <p>Simulador integral con percepciones, deducciones y novedades legisladas.</p>
-                    
-                    <div class="grid-2" style="margin-top: 15px;">
-                        <div>
-                            <div class="form-group">
-                                <label>Seleccionar Empleado</label>
-                                <select id="planSelectEmpleado" class="form-control" onchange="cargarSalarioEmpleado()">
-                                    <option value="">-- Seleccione un empleado --</option>
-                                </select>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Salario Base ($)</label>
-                                    <input type="number" id="planSalario" class="form-control" value="0.00" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Cant. Horas Extra Diurnas</label>
-                                    <input type="number" id="planCantHeDiurnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Cant. Horas Extra Nocturnas</label>
-                                    <input type="number" id="planCantHeNocturnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Vacaciones / Bonos ($)</label>
-                                    <input type="number" id="planBonos" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Incap./Faltas (Deducción $)</label>
-                                    <input type="number" id="planDeduccionesExtra" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Aguinaldo Proporcional ($)</label>
-                                    <input type="number" id="planAguinaldo" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <button class="btn-action" onclick="sincronizarPlanillaMaestra()">
-                                <i class="fas fa-cloud-upload-alt"></i> Sincronizar Planilla con Google Sheets
-                            </button>
-                        </div>
-
-                        <div class="results-box">
-                            <div class="result-item"><span>Total Devengado:</span> <strong id="resDevengado">$0.00</strong></div>
-                            <div class="result-item"><span>ISSS (3%):</span> <strong id="resIsss">$0.00</strong></div>
-                            <div class="result-item"><span>AFP (7.25%):</span> <strong id="resAfp">$0.00</strong></div>
-                            <div class="result-item"><span>Renta Gravada:</span> <strong id="resRenta">$0.00</strong></div>
-                            <div class="result-item"><span>Otras Deducciones / Faltas:</span> <strong id="resOtras">$0.00</strong></div>
-                            <div class="result-item neto"><span>Salario Neto a Recibir:</span> <strong id="resNeto">$0.00</strong></div>
-                        </div>
+                    <div class="form-group">
+                        <label>Salario Base ($)</label>
+                        <input type="number" id="emp-salario" placeholder="0.00">
                     </div>
+                    <button class="btn-primary" onclick="registrarEmpleado()">Guardar Empleado</button>
                 </div>
-            </div>
 
-            <!-- 4. DETALLE DE PLANILLA -->
-            <div id="vista-detalle" class="view-section">
-                <div class="module-card">
-                    <h3>Detalle Consolidado de Planilla y Novedades</h3>
-                    <p>Desglose completo especificando percepciones extraordinarias, ISSS, AFP, Renta y deducciones.</p>
-                    <table class="data-table" id="tablaDetallePlanilla">
-                        <thead>
-                            <tr><th>Empleado</th><th>Devengado</th><th>H. Extra/Bono</th><th>ISSS</th><th>AFP</th><th>Renta</th><th>Deducc./Faltas</th><th>Neto</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="8" style="text-align: center; color: #64748b;">No hay registros de planilla sincronizados.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 5. NOVEDADES -->
-            <div id="vista-novedades" class="view-section">
-                <div class="module-card">
-                    <h3>Registro de Novedades del Período</h3>
-                    <p>Listado de incidencias, horas extra, vacaciones y ausencias aplicadas al personal.</p>
-                    <table class="data-table" id="tablaNovedades">
-                        <thead>
-                            <tr><th>Empleado</th><th>Concepto / Novedad</th><th>Monto ($)</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">No hay novedades registradas.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 6. VALIDACIÓN -->
-            <div id="vista-validacion" class="view-section">
-                <div class="module-card">
-                    <h3>Módulo de Validación Integral</h3>
-                    <p>Comprobación automática de consistencia en datos de empleados, techos salariales y tramos de Renta.</p>
-                    <div id="resultadoValidacion" style="margin-top: 15px; padding: 15px; background: rgba(30, 41, 59, 0.4); border-radius: 8px; color: #4ade80;">
-                        <i class="fas fa-check-circle"></i> Todos los registros activos cumplen con las normativas fiscales y laborales.
+                <!-- Tarjeta Procesar Planilla -->
+                <div class="bento-card">
+                    <h3>Cálculo de Planilla</h3>
+                    <p>Procesa y sincroniza los pagos del periodo actual.</p>
+                    <div class="form-group">
+                        <label>Empleado o ID</label>
+                        <input type="text" id="plan-empleado" placeholder="Ej. EMP001-001">
                     </div>
-                </div>
-            </div>
-
-            <!-- 7. REPORTE -->
-            <div id="vista-reporte" class="view-section">
-                <div class="module-card">
-                    <h3>Reportes Gerenciales Consolidados</h3>
-                    <p>Resumen financiero global de la nómina de la empresa.</p>
-                    <div id="reporteContenido" style="margin-top: 15px; color: #cbd5e1; font-size: 0.95rem;">
-                        <p>Total de empleados activos: <strong id="repTotalEmp">0</strong></p>
-                        <p>Monto global devengado: <strong id="repTotalDev">$0.00</strong></p>
-                        <p>Total retenciones de ley (ISSS + AFP + Renta): <strong id="repTotalRet">$0.00</strong></p>
+                    <div class="form-group">
+                        <label>Total Devengado ($)</label>
+                        <input type="number" id="plan-devengado" placeholder="0.00">
                     </div>
+                    <button class="btn-primary" onclick="registrarPlanilla()">Sincronizar Planilla</button>
                 </div>
             </div>
-
-            <!-- 8. HISTORIAL -->
-            <div id="vista-historial" class="view-section">
-                <div class="module-card">
-                    <h3>Historial de Sincronizaciones</h3>
-                    <p>Registro de transacciones y envíos efectuados hacia el documento maestro en Google Sheets.</p>
-                    <table class="data-table" id="tablaHistorial">
-                        <thead>
-                            <tr><th>Fecha / Hora</th><th>Acción</th><th>Detalle</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Sin historial de sincronizaciones recientes.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 9. PARÁMETROS -->
-            <div id="vista-parametros" class="view-section">
-                <div class="module-card">
-                    <h3>Parámetros del Sistema (El Salvador)</h3>
-                    <p>Configuración de constantes fiscales predeterminadas.</p>
-                    <ul style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.8;">
-                        <li><strong>Tasa ISSS Empleado:</strong> 3.0% (Tope de salario cotizable: $1,000.00)</li>
-                        <li><strong>Tasa AFP Empleado:</strong> 7.25%</li>
-                        <li><strong>Tasa ISSS Patrono:</strong> 7.5%</li>
-                        <li><strong>Tasa AFP Patrono:</strong> 7.75%</li>
-                        <li><strong>Cálculo de Renta:</strong> Basado en tramos oficiales (Mensual: I Tramo Exento hasta $472.00)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- 10. AUDITORÍA -->
-            <div id="vista-auditoria" class="view-section">
-                <div class="module-card">
-                    <h3>Registro de Auditoría de Sesión</h3>
-                    <p>Trazabilidad de eventos de seguridad y accesos administrativos.</p>
-                    <table class="data-table" id="tablaAuditoria">
-                        <thead>
-                            <tr><th>Usuario</th><th>Evento</th><th>Fecha y Hora</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Cargando registros de auditoría...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- 11. FUNDAMENTO LEGAL -->
-            <div id="vista-legal" class="view-section">
-                <div class="module-card">
-                    <h3>Fundamento Legal e Institucional (República de El Salvador)</h3>
-                    <div class="legal-content">
-                        <p>La presente aplicación automatiza los cálculos de planillas y obligaciones laborales bajo el marco estricto de la legislación vigente en El Salvador:</p>
-                        
-                        <h4>1. Código de Trabajo (D.L. Nº 15, Tomo Nº 206)</h4>
-                        <p>Regula las relaciones laborales entre patronos y trabajadores. El sistema contempla:</p>
-                        <ul>
-                            <li><strong>Jornada Ordinaria y Horas Extraordinarias (Art. 161-169):</strong> Las horas extraordinarias se remuneran con un recargo del 100% sobre el salario ordinario calculado por hora (diurnas o nocturnas según corresponda).</li>
-                            <li><strong>Vacaciones Anuales Remuneradas (Art. 177):</strong> Todo trabajador tiene derecho a 15 días de vacaciones continuas remuneradas, más una prima equivalente al 30% de los salarios correspondientes a dicho período.</li>
-                            <li><strong>Aguinaldo (Art. 196-202):</strong> Prestación anual obligatoria calculada en función del tiempo de servicio prestado en el año calendario (10 a 15 días de salario según los años de servicio).</li>
-                        </ul>
-
-                        <h4>2. Ley del Seguro Social (ISSS)</h4>
-                        <p>Establece la obligatoriedad de la cotización para la cobertura de enfermedad, maternidad, invalidez, vejez y muerte. El aporte laboral ordinario corresponde al <strong>3.0%</strong> del salario devengado hasta el tope legal cotizable de $1,000.00, mientras que el patrono aporta el 7.5%.</p>
-
-                        <h4>3. Ley del Sistema de Ahorro para Pensiones (AFP)</h4>
-                        <p>Regula el sistema de capitalización individual administrado por las Instituciones Administradoras de Fondos de Pensiones. El trabajador aporta el <strong>7.25%</strong> de su salario base imponible con destino a su cuenta de ahorro para pensiones.</p>
-
-                        <h4>4. Ley del Impuesto sobre la Renta (ISR)</h4>
-                        <p>Administrada por el Ministerio de Hacienda (Dirección General de Impuestos Internos). El cálculo se efectúa sobre la renta gravada resultante de deducir del total devengado los aportes legales al ISSS y AFP, aplicando los tramos mensuales progresivos establecidos (Tramo I exento hasta $472.00; Tramo II 10%; Tramo III 20%; Tramo IV 30%).</p>
-                    </div>
-                </div>
-            </div>
-
-        </main>
+        </section>
     </div>
 
-    <!-- Scripts lógicos -->
-    <script src="config.js"></script>
-    <script src="api.js"></script>
-    <script src="nexus-core.js"></script>
+    <!-- ==========================================
+         ASISTENTE INTELIGENTE: ATHENA
+         ========================================== -->
+    <div id="athena-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <!-- Botón flotante -->
+        <button id="athena-toggle-btn" onclick="toggleAthenaChat()" style="background: linear-gradient(135deg, #2563eb, #9333ea); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 24px; transition: transform 0.3s ease;">
+            💬
+        </button>
+
+        <!-- Ventana de Chat -->
+        <div id="athena-window" style="display: none; position: absolute; bottom: 75px; right: 0; width: 350px; height: 480px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1rem; backdrop-filter: blur(16px); flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <!-- Cabecera -->
+            <div style="background: linear-gradient(135deg, #1e3a8a, #581c87); padding: 1rem; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">✨</span>
+                    <div>
+                        <h4 style="margin: 0; font-size: 1rem; font-weight: 600;">Athena AI</h4>
+                        <span style="font-size: 0.75rem; color: #cbd5e1;">Asistente NEXUS</span>
+                    </div>
+                </div>
+                <button onclick="toggleAthenaChat()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+
+            <!-- Cuerpo de mensajes -->
+            <div id="athena-messages" style="flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
+                <div style="background: rgba(30, 41, 59, 0.8); padding: 10px 14px; border-radius: 12px; color: #f3f4f6; max-width: 85%;">
+                    ¡Hola! Soy <b>Athena</b>, tu asistente inteligente. ¿En qué puedo ayudarte hoy con NEXUS Servicios Empresariales?
+                </div>
+            </div>
+
+            <!-- Barra de entrada -->
+            <div style="padding: 10px; background: rgba(15, 23, 42, 0.9); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; gap: 8px; align-items: center;">
+                <button id="athena-mic-btn" onclick="toggleSpeechRecognition()" title="Hablar con Athena" style="background: rgba(255, 255, 255, 0.1); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                    🎙️
+                </button>
+                <input type="text" id="athena-input" placeholder="Escribe o habla..." onkeypress="handleAthenaKeyPress(event)" style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; color: white; outline: none; font-size: 0.9rem;">
+                <button onclick="sendToAthena()" style="background: #2563eb; color: white; border: none; padding: 0 14px; height: 40px; border-radius: 8px; cursor: pointer; font-weight: 600;">Enviar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        let graficaNominaInstance = null;
-        let graficaActividadInstance = null;
-        let listaEmpleados = [];
-        let historialPlanillas = [];
-        let historialNovedades = [];
-        let historialSincro = [];
-        let registroAuditoria = [];
+        // URL de tu Apps Script (Versión 26 desplegada)
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoCo98Z-eYWrQfNZOGzUByhF9Y1Bcb1QqMh0akVPgwYUdWC8xIg5ZqmWGCzaD0T5SB/exec";
 
-        document.addEventListener("DOMContentLoaded", () => {
-            // SEGURIDAD OBLIGATORIA: Validar si existe sesión activa, si no, redirigir a index.html
-            const datosUsuario = localStorage.getItem('nexus_usuario');
-            if (!datosUsuario) {
-                window.location.href = "index.html";
-                return;
-            }
-            const usuario = JSON.parse(datosUsuario);
-            document.getElementById('nombreUsuario').innerText = usuario.nombre || "Usuario";
-            document.getElementById('rolUsuario').innerText = usuario.rol || "Administrador";
-
-            // Registrar inicio de sesión en auditoría local y almacenamiento
-            registrarAuditoriaEvento(usuario.nombre || "Administrador", "Inicio de Sesión Exitoso");
-
-            // Cargar empleados previos desde localStorage para evitar pérdida de datos al recargar
-            const empleadosGuardados = localStorage.getItem('nexus_empleados');
-            if (empleadosGuardados) {
-                listaEmpleados = JSON.parse(empleadosGuardados);
-                actualizarTablaEmpleados();
-                actualizarSelectEmpleados();
-            }
-
-            inicializarGraficasEnCero();
-        });
-
-        function cambiarVista(nombreVista, elementoLink) {
-            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(`vista-${nombreVista}`).classList.add('active');
-
-            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
-            if (elementoLink) elementoLink.classList.add('active');
-
-            if (nombreVista === 'dashboard') actualizarGraficasDinamicas();
-            if (nombreVista === 'reporte') actualizarReportes();
-        }
-
-        function calcularValorHoraExtraEmpleado() {
-            const salario = parseFloat(document.getElementById('empSalario').value) || 0;
-            // Cálculo legal en ES: (Salario / 30 días / 8 horas) * 2 (por recargo del 100%)
-            const valorHora = (salario / 30 / 8) * 2;
-            document.getElementById('lblValorHePreview').innerText = `$${valorHora.toFixed(2)}`;
-        }
-
+        // --- FUNCIONES DE CONEXIÓN CON SHEETS ---
         async function registrarEmpleado() {
-            const nombre = document.getElementById('empNombre').value.trim();
-            const dui = document.getElementById('empDui').value.trim();
-            const cargo = document.getElementById('empCargo').value.trim();
-            const salario = parseFloat(document.getElementById('empSalario').value) || 0;
-
-            if (!nombre || salario <= 0) {
-                alert("Por favor ingrese al menos el nombre y un salario base válido.");
-                return;
-            }
-
-            const nuevoEmpleado = { nombre, dui, cargo, salario };
-            listaEmpleados.push(nuevoEmpleado);
-            localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
-
-            // Sincronizar alta con Google Sheets
-            const payload = {
-                accion: "registrar_empleado",
-                nombre: nombre,
-                dui: dui,
-                cargo: cargo,
-                salario: salario,
-                fecha: new Date().toISOString()
-            };
+            const nombre = document.getElementById("emp-nombre").value;
+            const salario = document.getElementById("emp-salario").value;
+            if(!nombre || !salario) { alert("Completa los campos del empleado"); return; }
 
             try {
-                await API.enviarDatos(payload);
-                registrarHistorialSincro("Alta de Empleado", `Nombre: ${nombre} - Salario: $${salario.toFixed(2)}`);
-            } catch (e) {
-                console.warn("Sincronización de empleado en nube omitida localmente.");
-            }
-
-            document.getElementById('empNombre').value = '';
-            document.getElementById('empDui').value = '';
-            document.getElementById('empCargo').value = '';
-            document.getElementById('empSalario').value = '';
-            document.getElementById('lblValorHePreview').innerText = '$0.00';
-
-            actualizarTablaEmpleados();
-            actualizarSelectEmpleados();
-            alert("Empleado guardado localmente y sincronizado con el documento maestro.");
-        }
-
-        function actualizarTablaEmpleados() {
-            const tbody = document.querySelector('#tablaEmpleados tbody');
-            if (listaEmpleados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">No hay empleados registrados.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = listaEmpleados.map((emp, i) => `
-                <tr><td>${emp.nombre}</td><td>${emp.cargo || 'N/A'}</td><td>$${emp.salario.toFixed(2)}</td><td><button onclick="eliminarEmpleado(${i})" style="background:none; border:none; color:#fca5a5; cursor:pointer;"><i class="fas fa-trash"></i></button></td></tr>
-            `).join('');
-        }
-
-        function actualizarSelectEmpleados() {
-            const select = document.getElementById('planSelectEmpleado');
-            select.innerHTML = `<option value="">-- Seleccione un empleado --</option>` + 
-                listaEmpleados.map(emp => `<option value="${emp.nombre}">${emp.nombre} ($${emp.salario.toFixed(2)})</option>`).join('');
-        }
-
-        function eliminarEmpleado(index) {
-            listaEmpleados.splice(index, 1);
-            localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
-            actualizarTablaEmpleados();
-            actualizarSelectEmpleados();
-        }
-
-        function cargarSalarioEmpleado() {
-            const nombreSeleccionado = document.getElementById('planSelectEmpleado').value;
-            const emp = listaEmpleados.find(e => e.nombre === nombreSeleccionado);
-            if (emp) {
-                document.getElementById('planSalario').value = emp.salario.toFixed(2);
-            } else {
-                document.getElementById('planSalario').value = "0.00";
-            }
-            calcularPlanillaCompleta();
-        }
-
-        function calcularPlanillaCompleta() {
-            const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
-            const cantHeDiurnas = parseInt(document.getElementById('planCantHeDiurnas').value) || 0;
-            const cantHeNocturnas = parseInt(document.getElementById('planCantHeNocturnas').value) || 0;
-            const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
-            const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
-            const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
-
-            // Cálculo dinámico correcto basado en ley (Salario / 30 / 8 * 2)
-            const valorHoraBase = salarioBase > 0 ? (salarioBase / 30 / 8) * 2 : 0;
-            const montoHeDiurnas = cantHeDiurnas * valorHoraBase;
-            // Nocturna incluye un recargo extra adicional (25% sobre la diurna ordinaria por ley)
-            const montoHeNocturnas = cantHeNocturnas * (valorHoraBase * 1.25);
-
-            const totalDevengado = salarioBase + montoHeDiurnas + montoHeNocturnas + bonos + aguinaldo;
-            
-            const isss = Math.min(salarioBase, 1000) * 0.03;
-            const afp = salarioBase * 0.0725;
-            const rentaGravada = Math.max(0, totalDevengado - isss - afp);
-            
-            let renta = 0;
-            if (rentaGravada > 472.00 && rentaGravada <= 895.24) {
-                renta = (rentaGravada - 472.00) * 0.10 + 17.67;
-            } else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) {
-                renta = (rentaGravada - 895.24) * 0.20 + 60.00;
-            } else if (rentaGravada > 2038.10) {
-                renta = (rentaGravada - 2038.10) * 0.30 + 288.57;
-            }
-
-            const salarioNeto = totalDevengado - isss - afp - renta - deduccionesExtra;
-
-            document.getElementById('resDevengado').innerText = `$${totalDevengado.toFixed(2)}`;
-            document.getElementById('resIsss').innerText = `$${isss.toFixed(2)}`;
-            document.getElementById('resAfp').innerText = `$${afp.toFixed(2)}`;
-            document.getElementById('resRenta').innerText = `$${renta.toFixed(2)}`;
-            document.getElementById('resOtras').innerText = `$${deduccionesExtra.toFixed(2)}`;
-            document.getElementById('resNeto').innerText = `$${salarioNeto.toFixed(2)}`;
-
-            return { 
-                totalDevengado, 
-                heExtraTotal: montoHeDiurnas + montoHeNocturnas + bonos, 
-                cantHeDiurnas, 
-                montoHeDiurnas, 
-                montoHeNocturnas, 
-                isss, 
-                afp, 
-                renta, 
-                deduccionesExtra, 
-                salarioNeto 
-            };
-        }
-
-        async function sincronizarPlanillaMaestra() {
-            const empleadoNombre = document.getElementById('planSelectEmpleado').value;
-            if (!empleadoNombre) {
-                alert("Por favor seleccione un empleado.");
-                return;
-            }
-
-            const calculo = calcularPlanillaCompleta();
-            const payload = {
-                accion: "registrar_planilla",
-                empleado: empleadoNombre,
-                ...calculo,
-                fecha: new Date().toISOString()
-            };
-
-            // Registrar novedades detalladas
-            if (calculo.cantHeDiurnas > 0) {
-                historialNovedades.push({ empleado: empleadoNombre, concepto: `${calculo.cantHeDiurnas} Hora(s) Extra Diurna(s)`, monto: calculo.montoHeDiurnas });
-            }
-            if (calculo.montoHeNocturnas > 0) {
-                historialNovedades.push({ empleado: empleadoNombre, concepto: `Horas Extra Nocturnas`, monto: calculo.montoHeNocturnas });
-            }
-            if (calculo.deduccionesExtra > 0) {
-                historialNovedades.push({ empleado: empleadoNombre, concepto: "Faltas / Incapacidades", monto: calculo.deduccionesExtra });
-            }
-
-            try {
-                await API.enviarDatos(payload);
-                registrarHistorialSincro("Cálculo de Planilla", `Empleado: ${empleadoNombre} - Neto: $${calculo.salarioNeto.toFixed(2)}`);
-            } catch (error) {
-                console.warn("Sincronización en la nube omitida.");
-            }
-
-            historialPlanillas.push({ empleado: empleadoNombre, ...calculo });
-            actualizarTablaDetallePlanilla();
-            actualizarTablaNovedades();
-            alert("¡Planilla sincronizada con éxito y guardada en el documento maestro!");
-        }
-
-        async function registrarHistorialSincro(accion, detalle) {
-            const fecha = new Date().toLocaleString();
-            const itemHistorial = { fecha, accion, detalle };
-            historialSincro.push(itemHistorial);
-            
-            // Refrescar tabla visual de historial
-            const tbody = document.querySelector('#tablaHistorial tbody');
-            tbody.innerHTML = historialSincro.map(h => `
-                <tr><td>${h.fecha}</td><td>${h.accion}</td><td>${h.detalle}</td></tr>
-            `).join('');
-
-            // Sincronizar historial con Google Sheets
-            try {
-                await API.enviarDatos({
-                    accion: "registrar_historial",
-                    ...itemHistorial
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ accion: "registrar_empleado", nombre_completo: nombre, salario_base: salario })
                 });
+                const res = await response.json();
+                if(res.result === "success") {
+                    alert("¡Empleado registrado con éxito! ID: " + res.id_empleado);
+                    document.getElementById("emp-nombre").value = "";
+                    document.getElementById("emp-salario").value = "";
+                } else {
+                    alert("Error al registrar: " + res.message);
+                }
             } catch(e) {
-                console.warn("No se pudo enviar el historial a Google Sheets en tiempo real.");
+                alert("Error de red con Google Sheets.");
             }
         }
 
-        function registrarAuditoriaEvento(usuario, evento) {
-            const fecha = new Date().toLocaleString();
-            registroAuditoria.push({ usuario, evento, fecha });
-            const tbody = document.querySelector('#tablaAuditoria tbody');
-            if (tbody) {
-                tbody.innerHTML = registroAuditoria.map(a => `
-                    <tr><td>${a.usuario}</td><td>${a.evento}</td><td>${a.fecha}</td></tr>
-                `).join('');
+        async function registrarPlanilla() {
+            const empleado = document.getElementById("plan-empleado").value;
+            const devengado = parseFloat(document.getElementById("plan-devengado").value) || 0;
+            if(!empleado || !devengado) { alert("Completa los datos de la planilla"); return; }
+
+            // Cálculos aproximados de ley (ej. ISSS 3%, AFP 7.25%)
+            const isss = devengado * 0.03;
+            const afp = devengado * 0.0725;
+            const renta = devengado * 0.1; 
+            const salarioNeto = devengado - (isss + afp + renta);
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ 
+                        accion: "registrar_planilla", 
+                        empleado: empleado, 
+                        totalDevengado: devengado,
+                        isss: isss,
+                        afp: afp,
+                        renta: renta,
+                        salarioNeto: salarioNeto
+                    })
+                });
+                const res = await response.json();
+                if(res.result === "success") {
+                    alert("¡Planilla sincronizada con éxito! ID: " + res.id_planilla);
+                } else {
+                    alert("Error al sincronizar planilla.");
+                }
+            } catch(e) {
+                alert("Error de red con Google Sheets.");
             }
         }
 
-        function actualizarTablaDetallePlanilla() {
-            const tbody = document.querySelector('#tablaDetallePlanilla tbody');
-            if (historialPlanillas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #64748b;">No hay registros de planilla sincronizados.</td></tr>`;
+        // --- LÓGICA DE ATHENA AI ---
+        let isAthenaOpen = false;
+        const GEMINI_API_KEY = "debocambiar"; // Reemplaza por tu API Key de Google AI Studio
+
+        function toggleAthenaChat() {
+            isAthenaOpen = !isAthenaOpen;
+            document.getElementById("athena-window").style.display = isAthenaOpen ? "flex" : "none";
+        }
+
+        function appendMessage(sender, text) {
+            const messagesContainer = document.getElementById("athena-messages");
+            const msgDiv = document.createElement("div");
+            
+            if (sender === "user") {
+                msgDiv.style.cssText = "background: #2563eb; color: white; padding: 10px 14px; border-radius: 12px; align-self: flex-end; max-width: 85%; word-break: break-word;";
+            } else {
+                msgDiv.style.cssText = "background: rgba(30, 41, 59, 0.8); color: #f3f4f6; padding: 10px 14px; border-radius: 12px; align-self: flex-start; max-width: 85%; word-break: break-word;";
+                speakText(text); // Reproduce voz femenina
+            }
+            msgDiv.innerHTML = text;
+            messagesContainer.appendChild(msgDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendToAthena() {
+            const input = document.getElementById("athena-input");
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage("user", text);
+            input.value = "";
+
+            const messagesContainer = document.getElementById("athena-messages");
+            const typingDiv = document.createElement("div");
+            typingDiv.id = "athena-typing";
+            typingDiv.style.cssText = "background: rgba(30, 41, 59, 0.8); color: #9ca3af; padding: 8px 12px; border-radius: 12px; align-self: flex-start; font-style: italic; font-size: 0.85rem;";
+            typingDiv.innerText = "Athena está pensando...";
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: "Eres Athena, una asistente virtual experta en administración de empresas y recursos humanos para NEXUS Servicios Empresariales. Responde de forma concisa y profesional a: " + text }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById("athena-typing").remove();
+
+                if (data.candidates && data.candidates[0].content) {
+                    appendMessage("athena", data.candidates[0].content.parts[0].text);
+                } else {
+                    appendMessage("athena", "Lo siento, no pude procesar la respuesta.");
+                }
+            } catch (error) {
+                if(document.getElementById("athena-typing")) document.getElementById("athena-typing").remove();
+                appendMessage("athena", "Error de conexión con la IA.");
+            }
+        }
+
+        function handleAthenaKeyPress(event) {
+            if (event.key === "Enter") sendToAthena();
+        }
+
+        function toggleSpeechRecognition() {
+            const micBtn = document.getElementById("athena-mic-btn");
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Tu navegador no soporta reconocimiento de voz. Usa Google Chrome.");
                 return;
             }
-            tbody.innerHTML = historialPlanillas.map(h => `
-                <tr>
-                    <td>${h.empleado}</td>
-                    <td>$${h.totalDevengado.toFixed(2)}</td>
-                    <td>$${h.heExtraTotal.toFixed(2)}</td>
-                    <td>$${h.isss.toFixed(2)}</td>
-                    <td>$${h.afp.toFixed(2)}</td>
-                    <td>$${h.renta.toFixed(2)}</td>
-                    <td>$${h.deduccionesExtra.toFixed(2)}</td>
-                    <td style="color:#4ade80; font-weight:bold;">$${h.salarioNeto.toFixed(2)}</td>
-                </tr>
-            `).join('');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+
+            micBtn.style.background = "#dc2626";
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                document.getElementById("athena-input").value = event.results[0][0].transcript;
+                micBtn.style.background = "rgba(255, 255, 255, 0.1)";
+                sendToAthena();
+            };
+            recognition.onerror = recognition.onend = function() {
+                micBtn.style.background = "rgba(255, 255, 255, 0.1)";
+            };
         }
 
-        function actualizarTablaNovedades() {
-            const tbody = document.querySelector('#tablaNovedades tbody');
-            if (historialNovedades.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">No hay novedades registradas.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = historialNovedades.map(n => `
-                <tr><td>${n.empleado}</td><td>${n.concepto}</td><td>$${n.monto.toFixed(2)}</td></tr>
-            `).join('');
-        }
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            
+            const voices = window.speechSynthesis.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es') && (v.name.includes('Female') || v.name.includes('Helena') || v.name.includes('Google') || v.name.includes('Laura') || v.name.includes('Lucia')));
+            if (spanishVoice) utterance.voice = spanishVoice;
 
-        function actualizarReportes() {
-            document.getElementById('repTotalEmp').innerText = listaEmpleados.length;
-            let totalDev = historialPlanillas.reduce((a, c) => a + c.totalDevengado, 0);
-            let totalRet = historialPlanillas.reduce((a, c) => a + c.isss + c.afp + c.renta, 0);
-            document.getElementById('repTotalDev').innerText = `$${totalDev.toFixed(2)}`;
-            document.getElementById('repTotalRet').innerText = `$${totalRet.toFixed(2)}`;
-        }
-
-        function inicializarGraficasEnCero() {
-            const ctx1 = document.getElementById('graficaNomina').getContext('2d');
-            graficaNominaInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Neto', 'AFP', 'ISSS', 'Renta'],
-                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#4ade80', '#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
-            });
-
-            const ctx2 = document.getElementById('graficaActividad').getContext('2d');
-            graficaActividadInstance = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['Sincronizaciones'],
-                    datasets: [{ label: 'Envíos', data: [0], backgroundColor: '#2563eb', borderRadius: 6 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#cbd5e1' }, grid: { display: false } } }, plugins: { legend: { display: false } } }
-            });
-        }
-
-        function actualizarGraficasDinamicas() {
-            if (graficaNominaInstance && historialPlanillas.length > 0) {
-                let totalNeto = historialPlanillas.reduce((acc, curr) => acc + curr.salarioNeto, 0);
-                let totalAfp = historialPlanillas.reduce((acc, curr) => acc + curr.afp, 0);
-                let totalIsss = historialPlanillas.reduce((acc, curr) => acc + curr.isss, 0);
-                let totalRenta = historialPlanillas.reduce((acc, curr) => acc + curr.renta, 0);
-                graficaNominaInstance.data.datasets[0].data = [totalNeto, totalAfp, totalIsss, totalRenta];
-                graficaNominaInstance.update();
-            }
-        }
-
-        function cerrarSesion() {
-            registrarAuditoriaEvento(JSON.parse(localStorage.getItem('nexus_usuario'))?.nombre || "Usuario", "Cierre de Sesión");
-            localStorage.removeItem('nexus_usuario');
-            window.location.href = "index.html";
+            window.speechSynthesis.speak(utterance);
         }
     </script>
 </body>
