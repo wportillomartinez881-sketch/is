@@ -526,6 +526,9 @@
         let historialSincro = [];
         let registroAuditoria = [];
 
+        // URL de tu Web App de Google Apps Script
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoCo98Z-eYWrQfNZOGzUByhF9Y1Bcb1QqMh0akVPgwYUdWC8xIg5ZqmWGCzaD0T5SB/exec";
+
         document.addEventListener("DOMContentLoaded", () => {
             const datosUsuario = localStorage.getItem('nexus_usuario');
             if (!datosUsuario) {
@@ -580,24 +583,24 @@
             const nuevoEmpleado = { nombre, dui, cargo, salario };
             listaEmpleados.push(nuevoEmpleado);
             
-            // Guardado local persistente para asegurar el funcionamiento sin interrupciones
             localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
 
             try {
-                if (typeof API !== 'undefined' && API.enviarDatos) {
-                    const payload = {
-                        accion: "registrar_empleado",
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        accion: "REGISTRAR_EMPLEADO",
                         nombre: nombre,
                         dui: dui,
                         cargo: cargo,
-                        salario: salario,
-                        fecha: new Date().toISOString()
-                    };
-                    await API.enviarDatos(payload);
-                }
+                        salario: salario
+                    })
+                });
                 registrarHistorialSincro("Alta de Empleado", `Nombre: ${nombre} - Salario: $${salario.toFixed(2)}`);
             } catch (e) {
-                console.warn("Sincronización en la nube omitida, operando de manera local.");
+                console.warn("Error al sincronizar empleado en la nube.");
             }
 
             document.getElementById('empNombre').value = '';
@@ -698,13 +701,19 @@
             const filas = document.querySelectorAll('#tablaPlanillaMasiva tbody tr');
             const btnSincronizar = event.target;
             const textoOriginal = btnSincronizar.innerHTML;
-            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Procesando lote...`;
+            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Guardando en Google...`;
             btnSincronizar.disabled = true;
 
             historialPlanillas = [];
             historialNovedades = [];
 
             try {
+                let totalDevengadoGlobal = 0;
+                let totalIsssGlobal = 0;
+                let totalAfpGlobal = 0;
+                let totalRentaGlobal = 0;
+                let totalNetoGlobal = 0;
+
                 for (let i = 0; i < listaEmpleados.length; i++) {
                     const emp = listaEmpleados[i];
                     const fila = filas[i];
@@ -726,6 +735,13 @@
                     else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
 
                     const totalDeducciones = isss + afp + renta + deduccionesExtra;
+                    const netoCalculado = totalDevengado - totalDeducciones;
+
+                    totalDevengadoGlobal += totalDevengado;
+                    totalIsssGlobal += isss;
+                    totalAfpGlobal += afp;
+                    totalRentaGlobal += renta;
+                    totalNetoGlobal += netoCalculado;
 
                     historialPlanillas.unshift({
                         empleado: emp.nombre,
@@ -737,20 +753,31 @@
                         deducciones: `$${deduccionesExtra.toFixed(2)}`,
                         neto: netoTexto
                     });
-
-                    if (cantHeDiurnas > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Horas Extra Diurnas", monto: `${cantHeDiurnas} hrs` });
-                    if (cantHeNocturnas > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Horas Extra Nocturnas", monto: `${cantHeNocturnas} hrs` });
-                    if (bonos > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Bonificación / Extra", monto: `$${bonos.toFixed(2)}` });
-                    if (deduccionesExtra > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Faltas / Deducción", monto: `$${deduccionesExtra.toFixed(2)}` });
                 }
 
+                // Envío con la orden exacta "GUARDAR_PLANILLA" esperada por tu Google Apps Script
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        accion: "GUARDAR_PLANILLA",
+                        id_empresa: "EMP001",
+                        devengado: totalDevengadoGlobal,
+                        isss: totalIsssGlobal,
+                        afp: totalAfpGlobal,
+                        renta: totalRentaGlobal,
+                        neto: totalNetoGlobal
+                    })
+                });
+
                 actualizarTablasDetalleYNovedades();
-                alert(`¡Lote procesado con éxito! Se calcularon ${listaEmpleados.length} registros correctamente.`);
-                registrarHistorialSincro("Cálculo Masivo de Planilla", `Se procesaron ${listaEmpleados.length} registros.`);
-                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Calculó planilla masiva (${listaEmpleados.length} emp.)`);
+                alert(`¡Planilla calculada y guardada en el documento de Google con éxito!`);
+                registrarHistorialSincro("Sincronización a Google", `Lote procesado para ${listaEmpleados.length} empleados.`);
+                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla a Google Sheets`);
             } catch (error) {
-                console.error("Error al procesar lote:", error);
-                alert("Ocurrió un error al calcular la planilla.");
+                console.error("Error al sincronizar:", error);
+                alert("Ocurrió un error al intentar guardar en Google Sheets.");
             } finally {
                 btnSincronizar.innerHTML = textoOriginal;
                 btnSincronizar.disabled = false;
