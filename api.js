@@ -1,4 +1,4 @@
-const CONFIG = {
+const CONFIG_API = {
   API_URL: 'https://script.google.com/macros/s/AKfycbwAJgAi_S0ZulK2tZRyrG5WeQfnRjU8taWZ9brO5WOKoa1wLRNM3aIUlVsxghazNh5-/exec'
 };
 
@@ -9,7 +9,7 @@ async function ejecutarAccionAPI(accion, payload = {}) {
   try {
     const bodyData = Object.assign({ accion: accion }, payload);
     
-    const response = await fetch(CONFIG.API_URL, {
+    const response = await fetch(CONFIG_API.API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8'
@@ -36,7 +36,7 @@ async function ejecutarAccionAPI(accion, payload = {}) {
  */
 async function obtenerPlanillasAPI() {
   try {
-    const response = await fetch(CONFIG.API_URL, {
+    const response = await fetch(CONFIG_API.API_URL, {
       method: 'GET',
       redirect: 'follow'
     });
