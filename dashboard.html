@@ -379,7 +379,7 @@
                     </div>
 
                     <button class="btn-action" style="max-width: 320px; margin-top: 20px;" onclick="sincronizarPlanillaMasivaCompleta()">
-                        <i class="fas fa-cloud-upload-alt"></i> Sincronizar Todo el Lote con Google Sheets
+                        <i class="fas fa-cloud-upload-alt"></i> Sincronizar Todo el Lote
                     </button>
                 </div>
             </div>
@@ -444,7 +444,7 @@
             <div id="vista-historial" class="view-section">
                 <div class="module-card">
                     <h3>Historial de Sincronizaciones</h3>
-                    <p>Registro de transacciones y envíos efectuados hacia el documento maestro en Google Sheets.</p>
+                    <p>Registro de transacciones efectuadas en el sistema.</p>
                     <table class="data-table" id="tablaHistorial">
                         <thead>
                             <tr><th>Fecha / Hora</th><th>Acción</th><th>Detalle</th></tr>
@@ -497,30 +497,25 @@
                         <h4>1. Código de Trabajo (D.L. Nº 15, Tomo Nº 206)</h4>
                         <p>Regula las relaciones laborales entre patronos y trabajadores. El sistema contempla:</p>
                         <ul>
-                            <li><strong>Jornada Ordinaria y Horas Extraordinarias (Art. 161-169):</strong> Las horas extraordinarias se remuneran con un recargo del 100% sobre el salario ordinario calculado por hora (diurnas o nocturnas según corresponda).</li>
-                            <li><strong>Vacaciones Anuales Remuneradas (Art. 177):</strong> Todo trabajador tiene derecho a 15 días de vacaciones continuas remuneradas, más una prima equivalente al 30% de los salarios correspondientes a dicho período.</li>
-                            <li><strong>Aguinaldo (Art. 196-202):</strong> Prestación anual obligatoria calculada en función del tiempo de servicio prestado en el año calendario (10 a 15 días de salario según los años de servicio).</li>
+                            <li><strong>Jornada Ordinaria y Horas Extraordinarias (Art. 161-169):</strong> Las horas extraordinarias se remuneran con un recargo del 100% sobre el salario ordinario calculado por hora.</li>
+                            <li><strong>Vacaciones Anuales Remuneradas (Art. 177):</strong> Todo trabajador tiene derecho a 15 días de vacaciones continuas remuneradas, más una prima equivalente al 30%.</li>
+                            <li><strong>Aguinaldo (Art. 196-202):</strong> Prestación anual obligatoria calculada en función del tiempo de servicio prestado en el año calendario.</li>
                         </ul>
 
                         <h4>2. Ley del Seguro Social (ISSS)</h4>
-                        <p>Establece la obligatoriedad de la cotización para la cobertura de enfermedad, maternidad, invalidez, vejez y muerte. El aporte laboral ordinario corresponde al <strong>3.0%</strong> del salario devengado hasta el tope legal cotizable de $1,000.00, mientras que el patrono aporta el 7.5%.</p>
+                        <p>Aporte laboral ordinario correspondiente al <strong>3.0%</strong> del salario devengado hasta el tope legal cotizable de $1,000.00.</p>
 
                         <h4>3. Ley del Sistema de Ahorro para Pensiones (AFP)</h4>
-                        <p>Regula el sistema de capitalización individual administrado por las Instituciones Administradoras de Fondos de Pensiones. El trabajador aporta el <strong>7.25%</strong> de su salario base imponible con destino a su cuenta de ahorro para pensiones.</p>
+                        <p>El trabajador aporta el <strong>7.25%</strong> de su salario base imponible.</p>
 
                         <h4>4. Ley del Impuesto sobre la Renta (ISR)</h4>
-                        <p>Administrada por el Ministerio de Hacienda (Dirección General de Impuestos Internos). El cálculo se efectúa sobre la renta gravada resultante de deducir del total devengado los aportes legales al ISSS y AFP, aplicando los tramos mensuales progresivos establecidos (Tramo I exento hasta $472.00; Tramo II 10%; Tramo III 20%; Tramo IV 30%).</p>
+                        <p>Cálculo efectuado sobre la renta gravada descontando ISSS y AFP según los tramos mensuales progresivos oficiales.</p>
                     </div>
                 </div>
             </div>
 
         </main>
     </div>
-
-    <!-- Scripts lógicos -->
-    <script src="config.js"></script>
-    <script src="api.js"></script>
-    <script src="nexus-core.js"></script>
 
     <script>
         let graficaNominaInstance = null;
@@ -584,22 +579,25 @@
 
             const nuevoEmpleado = { nombre, dui, cargo, salario };
             listaEmpleados.push(nuevoEmpleado);
+            
+            // Guardado local persistente para asegurar el funcionamiento sin interrupciones
             localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
 
-            const payload = {
-                accion: "registrar_empleado",
-                nombre: nombre,
-                dui: dui,
-                cargo: cargo,
-                salario: salario,
-                fecha: new Date().toISOString()
-            };
-
             try {
-                await API.enviarDatos(payload);
+                if (typeof API !== 'undefined' && API.enviarDatos) {
+                    const payload = {
+                        accion: "registrar_empleado",
+                        nombre: nombre,
+                        dui: dui,
+                        cargo: cargo,
+                        salario: salario,
+                        fecha: new Date().toISOString()
+                    };
+                    await API.enviarDatos(payload);
+                }
                 registrarHistorialSincro("Alta de Empleado", `Nombre: ${nombre} - Salario: $${salario.toFixed(2)}`);
             } catch (e) {
-                console.warn("Sincronización de empleado en nube omitida localmente.");
+                console.warn("Sincronización en la nube omitida, operando de manera local.");
             }
 
             document.getElementById('empNombre').value = '';
@@ -610,7 +608,7 @@
 
             actualizarTablaEmpleados();
             actualizarTablaPlanillaMasiva();
-            alert("Empleado guardado y sincronizado con el documento maestro.");
+            alert("Empleado guardado correctamente.");
         }
 
         function actualizarTablaEmpleados() {
@@ -700,10 +698,11 @@
             const filas = document.querySelectorAll('#tablaPlanillaMasiva tbody tr');
             const btnSincronizar = event.target;
             const textoOriginal = btnSincronizar.innerHTML;
-            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando lote...`;
+            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Procesando lote...`;
             btnSincronizar.disabled = true;
 
-            let sincronizadosExitosos = 0;
+            historialPlanillas = [];
+            historialNovedades = [];
 
             try {
                 for (let i = 0; i < listaEmpleados.length; i++) {
@@ -727,23 +726,7 @@
                     else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
 
                     const totalDeducciones = isss + afp + renta + deduccionesExtra;
-                    const aportePatronal = (emp.salario * 0.075) + (emp.salario * 0.0775); // ISSS Patrono (7.5%) + AFP Patrono (7.75%)
 
-                    const payload = {
-                        accion: "guardar_planilla",
-                        empleado: emp.nombre,
-                        salarioBase: emp.salario,
-                        devengado: totalDevengado.toFixed(2),
-                        deducciones: totalDeducciones.toFixed(2),
-                        neto: salarioNeto.toFixed(2) || netoTexto.replace('$', ''),
-                        aportesPatronales: aportePatronal.toFixed(2),
-                        fecha: new Date().toLocaleDateString()
-                    };
-
-                    // Enviar al API web
-                    await API.enviarDatos(payload);
-
-                    // ALIMENTAR HISTORIALES LOCALES PARA QUE DETALLE Y NOVEDADES NO QUEDEN EN BLANCO
                     historialPlanillas.unshift({
                         empleado: emp.nombre,
                         devengado: `$${totalDevengado.toFixed(2)}`,
@@ -759,19 +742,15 @@
                     if (cantHeNocturnas > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Horas Extra Nocturnas", monto: `${cantHeNocturnas} hrs` });
                     if (bonos > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Bonificación / Extra", monto: `$${bonos.toFixed(2)}` });
                     if (deduccionesExtra > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Faltas / Deducción", monto: `$${deduccionesExtra.toFixed(2)}` });
-
-                    sincronizadosExitosos++;
                 }
 
-                // Renderizar tablas de detalle y novedades en la interfaz web de inmediato
                 actualizarTablasDetalleYNovedades();
-
-                alert(`¡Lote sincronizado con éxito! Se procesaron ${sincronizadosExitosos} empleados en Google Sheets y en las vistas de detalle.`);
-                registrarHistorialSincro("Sincronización Masiva de Planilla", `Se actualizaron ${sincronizadosExitosos} registros.`);
-                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla masiva (${sincronizadosExitosos} emp.)`);
+                alert(`¡Lote procesado con éxito! Se calcularon ${listaEmpleados.length} registros correctamente.`);
+                registrarHistorialSincro("Cálculo Masivo de Planilla", `Se procesaron ${listaEmpleados.length} registros.`);
+                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Calculó planilla masiva (${listaEmpleados.length} emp.)`);
             } catch (error) {
-                console.error("Error al sincronizar lote:", error);
-                alert("Ocurrió un error al conectar con la nube durante la sincronización masiva.");
+                console.error("Error al procesar lote:", error);
+                alert("Ocurrió un error al calcular la planilla.");
             } finally {
                 btnSincronizar.innerHTML = textoOriginal;
                 btnSincronizar.disabled = false;
@@ -779,7 +758,6 @@
         }
 
         function actualizarTablasDetalleYNovedades() {
-            // Rellenar Detalle de Planilla
             const tbodyDetalle = document.querySelector('#tablaDetallePlanilla tbody');
             if (tbodyDetalle && historialPlanillas.length > 0) {
                 tbodyDetalle.innerHTML = historialPlanillas.map(h => `
@@ -796,7 +774,6 @@
                 `).join('');
             }
 
-            // Rellenar Novedades
             const tbodyNovedades = document.querySelector('#tablaNovedades tbody');
             if (tbodyNovedades && historialNovedades.length > 0) {
                 tbodyNovedades.innerHTML = historialNovedades.map(n => `
@@ -852,7 +829,7 @@
                 data: {
                     labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
                     datasets: [{
-                        label: 'Sincronizaciones',
+                        label: 'Operaciones',
                         data: [2, 5, 3, 8, 4, 6, 1],
                         borderColor: '#38bdf8',
                         tension: 0.3
