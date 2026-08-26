@@ -737,15 +737,69 @@
             document.getElementById('resNeto').innerText = `$${salarioNeto.toFixed(2)}`;
         }
 
+        // FUNCIÓN CORREGIDA Y CONECTADA AL API PARA GUARDAR NOVEDADES Y PLANILLA EN GOOGLE SHEETS
         async function sincronizarPlanillaMaestra() {
-            const empleado = document.getElementById('planSelectEmpleado').value;
-            if (!empleado) {
-                alert("Seleccione un empleado antes de sincronizar la planilla.");
+            const empleadoSelect = document.getElementById('planSelectEmpleado');
+            const empleadoNombre = empleadoSelect.value;
+            
+            if (!empleadoNombre) {
+                alert("Por favor seleccione un empleado antes de sincronizar la planilla.");
                 return;
             }
-            const neto = document.getElementById('resNeto').innerText;
-            alert(`Planilla de ${empleado} procesada por un neto de ${neto} y sincronizada exitosamente.`);
-            registrarHistorialSincro("Cálculo de Planilla", `Empleado: ${empleado} - Neto: ${neto}`);
+
+            const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
+            const cantHeDiurnas = parseFloat(document.getElementById('planCantHeDiurnas').value) || 0;
+            const cantHeNocturnas = parseFloat(document.getElementById('planCantHeNocturnas').value) || 0;
+            const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
+            const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
+            const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
+
+            const totalDevengado = document.getElementById('resDevengado').innerText;
+            const isss = document.getElementById('resIsss').innerText;
+            const afp = document.getElementById('resAfp').innerText;
+            const renta = document.getElementById('resRenta').innerText;
+            const salarioNeto = document.getElementById('resNeto').innerText;
+
+            const payload = {
+                accion: "guardar_planilla",
+                empleado: empleadoNombre,
+                salarioBase: salarioBase,
+                horasExtraDiurnas: cantHeDiurnas,
+                horasExtraNocturnas: cantHeNocturnas,
+                bonos: bonos,
+                deduccionesExtra: deduccionesExtra,
+                aguinaldo: aguinaldo,
+                devengado: totalDevengado,
+                isss: isss,
+                afp: afp,
+                renta: renta,
+                neto: salarioNeto,
+                fecha: new Date().toISOString()
+            };
+
+            const btnSincronizar = event.target;
+            const textoOriginal = btnSincronizar.innerHTML;
+            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando...`;
+            btnSincronizar.disabled = true;
+
+            try {
+                const respuesta = await API.enviarDatos(payload);
+                
+                if (respuesta && (respuesta.estado === "correcto" || respuesta.result === "success" || respuesta.estado === "exito")) {
+                    alert(`¡Planilla de ${empleadoNombre} sincronizada con éxito en Google Sheets! Neto a pagar: ${salarioNeto}`);
+                    registrarHistorialSincro("Sincronización de Planilla", `Empleado: ${empleadoNombre} - Neto: ${salarioNeto}`);
+                    registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla para ${empleadoNombre}`);
+                } else {
+                    alert("Los datos se enviaron, pero hubo un aviso del servidor: " + (respuesta.mensaje || "Revisar Google Sheets"));
+                    registrarHistorialSincro("Sincronización (Con Avisos)", `Empleado: ${empleadoNombre}`);
+                }
+            } catch (error) {
+                console.error("Error al sincronizar planilla:", error);
+                alert("Error de conexión al intentar guardar la planilla en la nube. Verifique su conexión.");
+            } finally {
+                btnSincronizar.innerHTML = textoOriginal;
+                btnSincronizar.disabled = false;
+            }
         }
 
         function registrarHistorialSincro(accion, detalle) {
