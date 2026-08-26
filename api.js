@@ -1,4 +1,4 @@
-const CONFIG_API = {
+const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbwAJgAi_S0ZulK2tZRyrG5WeQfnRjU8taWZ9brO5WOKoa1wLRNM3aIUlVsxghazNh5-/exec'
 };
 
@@ -7,9 +7,15 @@ const CONFIG_API = {
  */
 async function ejecutarAccionAPI(accion, payload = {}) {
   try {
-    const bodyData = Object.assign({ accion: accion }, payload);
+    // Aseguramos compatibilidad total si el frontend envía email en lugar de correo
+    if (payload.email && !payload.correo) {
+      payload.correo = payload.email;
+    }
     
-    const response = await fetch(CONFIG_API.API_URL, {
+    const bodyData = Object.assign({ accion: accion }, payload);
+    console.log(`Enviando a API [${accion}]:`, bodyData); // Depuración en consola F12[cite: 1]
+    
+    const response = await fetch(CONFIG.API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/plain;charset=utf-8'
@@ -18,7 +24,15 @@ async function ejecutarAccionAPI(accion, payload = {}) {
       redirect: 'follow'
     });
 
-    const data = await response.json();
+    const textResponse = await response.text();
+    console.log("Respuesta cruda del servidor:", textResponse); // Ver qué responde exactamente Google[cite: 1]
+
+    let data;
+    try {
+      data = JSON.parse(textResponse);
+    } catch (e) {
+      throw new Error("Respuesta inválida del servidor: " + textResponse);
+    }
     
     if (data.result === 'error') {
       throw new Error(data.message || 'Error en el servidor');
@@ -36,7 +50,7 @@ async function ejecutarAccionAPI(accion, payload = {}) {
  */
 async function obtenerPlanillasAPI() {
   try {
-    const response = await fetch(CONFIG_API.API_URL, {
+    const response = await fetch(CONFIG.API_URL, {
       method: 'GET',
       redirect: 'follow'
     });
