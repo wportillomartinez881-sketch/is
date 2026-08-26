@@ -179,30 +179,14 @@
             outline: none;
             border-color: #2563eb;
         }
-
-        .results-box {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-        }
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 5px;
-        }
-        .result-item.neto {
-            font-weight: bold;
-            color: #4ade80;
-            border-bottom: none;
-            font-size: 1.05rem;
-            margin-top: 5px;
+        .form-control-sm {
+            width: 70px;
+            padding: 4px 6px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: #ffffff;
+            text-align: center;
         }
 
         .btn-action {
@@ -369,64 +353,34 @@
                 </div>
             </div>
 
-            <!-- 3. CÁLCULO DE PLANILLA -->
+            <!-- 3. CÁLCULO DE PLANILLA (MODIFICADO A TABLA MASIVA) -->
             <div id="vista-planilla" class="view-section">
                 <div class="module-card">
-                    <h3>Cálculo Avanzado de Planilla</h3>
-                    <p>Simulador integral con percepciones, deducciones y novedades legisladas.</p>
+                    <h3>Cálculo Masivo de Planilla</h3>
+                    <p>Modifique las horas extra, bonos y deducciones directamente en la tabla para todo el personal y sincronice todo el lote.</p>
                     
-                    <div class="grid-2" style="margin-top: 15px;">
-                        <div>
-                            <div class="form-group">
-                                <label>Seleccionar Empleado</label>
-                                <select id="planSelectEmpleado" class="form-control" onchange="cargarSalarioEmpleado()">
-                                    <option value="">-- Seleccione un empleado --</option>
-                                </select>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Salario Base ($)</label>
-                                    <input type="number" id="planSalario" class="form-control" value="0.00" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Cant. Horas Extra Diurnas</label>
-                                    <input type="number" id="planCantHeDiurnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Cant. Horas Extra Nocturnas</label>
-                                    <input type="number" id="planCantHeNocturnas" class="form-control" value="0" min="0" step="1" oninput="calcularPlanillaCompleta()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Vacaciones / Bonos ($)</label>
-                                    <input type="number" id="planBonos" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label>Incap./Faltas (Deducción $)</label>
-                                    <input type="number" id="planDeduccionesExtra" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                                <div class="form-group">
-                                    <label>Aguinaldo Proporcional ($)</label>
-                                    <input type="number" id="planAguinaldo" class="form-control" value="0.00" step="0.01" oninput="calcularPlanillaCompleta()">
-                                </div>
-                            </div>
-                            <button class="btn-action" onclick="sincronizarPlanillaMaestra()">
-                                <i class="fas fa-cloud-upload-alt"></i> Sincronizar Planilla con Google Sheets
-                            </button>
-                        </div>
-
-                        <div class="results-box">
-                            <div class="result-item"><span>Total Devengado:</span> <strong id="resDevengado">$0.00</strong></div>
-                            <div class="result-item"><span>ISSS (3%):</span> <strong id="resIsss">$0.00</strong></div>
-                            <div class="result-item"><span>AFP (7.25%):</span> <strong id="resAfp">$0.00</strong></div>
-                            <div class="result-item"><span>Renta Gravada:</span> <strong id="resRenta">$0.00</strong></div>
-                            <div class="result-item"><span>Otras Deducciones / Faltas:</span> <strong id="resOtras">$0.00</strong></div>
-                            <div class="result-item neto"><span>Salario Neto a Recibir:</span> <strong id="resNeto">$0.00</strong></div>
-                        </div>
+                    <div style="overflow-x: auto; margin-top: 15px;">
+                        <table class="data-table" id="tablaPlanillaMasiva">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Salario Base</th>
+                                    <th>H. Extra Diurnas</th>
+                                    <th>H. Extra Nocturnas</th>
+                                    <th>Bonos ($)</th>
+                                    <th>Faltas/Deducc. ($)</th>
+                                    <th>Neto Calculado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" style="text-align: center; color: #64748b;">No hay empleados registrados para calcular.</td></tr>
+                            </tbody>
+                        </table>
                     </div>
+
+                    <button class="btn-action" style="max-width: 320px; margin-top: 20px;" onclick="sincronizarPlanillaMasivaCompleta()">
+                        <i class="fas fa-cloud-upload-alt"></i> Sincronizar Todo el Lote con Google Sheets
+                    </button>
                 </div>
             </div>
 
@@ -578,7 +532,6 @@
         let registroAuditoria = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-            // SEGURIDAD OBLIGATORIA: Validar si existe sesión activa, si no, redirigir a index.html
             const datosUsuario = localStorage.getItem('nexus_usuario');
             if (!datosUsuario) {
                 window.location.href = "index.html";
@@ -588,15 +541,13 @@
             document.getElementById('nombreUsuario').innerText = usuario.nombre || "Usuario";
             document.getElementById('rolUsuario').innerText = usuario.rol || "Administrador";
 
-            // Registrar inicio de sesión en auditoría local y almacenamiento
             registrarAuditoriaEvento(usuario.nombre || "Administrador", "Inicio de Sesión Exitoso");
 
-            // Cargar empleados previos desde localStorage para evitar pérdida de datos al recargar
             const empleadosGuardados = localStorage.getItem('nexus_empleados');
             if (empleadosGuardados) {
                 listaEmpleados = JSON.parse(empleadosGuardados);
                 actualizarTablaEmpleados();
-                actualizarSelectEmpleados();
+                actualizarTablaPlanillaMasiva();
             }
 
             inicializarGraficasEnCero();
@@ -611,11 +562,11 @@
 
             if (nombreVista === 'dashboard') actualizarGraficasDinamicas();
             if (nombreVista === 'reporte') actualizarReportes();
+            if (nombreVista === 'planilla') actualizarTablaPlanillaMasiva();
         }
 
         function calcularValorHoraExtraEmpleado() {
             const salario = parseFloat(document.getElementById('empSalario').value) || 0;
-            // Cálculo legal en ES: (Salario / 30 días / 8 horas) * 2 (por recargo del 100%)
             const valorHora = (salario / 30 / 8) * 2;
             document.getElementById('lblValorHePreview').innerText = `$${valorHora.toFixed(2)}`;
         }
@@ -635,7 +586,6 @@
             listaEmpleados.push(nuevoEmpleado);
             localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
 
-            // Sincronizar alta con Google Sheets
             const payload = {
                 accion: "registrar_empleado",
                 nombre: nombre,
@@ -659,8 +609,8 @@
             document.getElementById('lblValorHePreview').innerText = '$0.00';
 
             actualizarTablaEmpleados();
-            actualizarSelectEmpleados();
-            alert("Empleado guardado localmente y sincronizado con el documento maestro.");
+            actualizarTablaPlanillaMasiva();
+            alert("Empleado guardado y sincronizado con el documento maestro.");
         }
 
         function actualizarTablaEmpleados() {
@@ -674,43 +624,54 @@
             `).join('');
         }
 
-        function actualizarSelectEmpleados() {
-            const select = document.getElementById('planSelectEmpleado');
-            select.innerHTML = `<option value="">-- Seleccione un empleado --</option>` + 
-                listaEmpleados.map(emp => `<option value="${emp.nombre}">${emp.nombre} ($${emp.salario.toFixed(2)})</option>`).join('');
-        }
-
         function eliminarEmpleado(index) {
             listaEmpleados.splice(index, 1);
             localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
             actualizarTablaEmpleados();
-            actualizarSelectEmpleados();
+            actualizarTablaPlanillaMasiva();
         }
 
-        function cargarSalarioEmpleado() {
-            const nombre = document.getElementById('planSelectEmpleado').value;
-            const emp = listaEmpleados.find(e => e.nombre === nombre);
-            if (emp) {
-                document.getElementById('planSalario').value = emp.salario.toFixed(2);
-            } else {
-                document.getElementById('planSalario').value = "0.00";
+        // --- CÁLCULO MASIVO EN TABLA ---
+        function actualizarTablaPlanillaMasiva() {
+            const tbody = document.querySelector('#tablaPlanillaMasiva tbody');
+            if (listaEmpleados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b;">No hay empleados registrados para calcular.</td></tr>`;
+                return;
             }
-            calcularPlanillaCompleta();
+
+            tbody.innerHTML = listaEmpleados.map((emp, index) => `
+                <tr data-index="${index}">
+                    <td><strong>${emp.nombre}</strong><br><small style="color:#94a3b8;">${emp.cargo || ''}</small></td>
+                    <td>$${emp.salario.toFixed(2)}</td>
+                    <td><input type="number" class="form-control-sm he-diurnas" value="0" min="0" oninput="recalcularFilaMasiva(${index})"></td>
+                    <td><input type="number" class="form-control-sm he-nocturnas" value="0" min="0" oninput="recalcularFilaMasiva(${index})"></td>
+                    <td><input type="number" class="form-control-sm bonos" value="0.00" step="0.01" oninput="recalcularFilaMasiva(${index})"></td>
+                    <td><input type="number" class="form-control-sm deducciones" value="0.00" step="0.01" oninput="recalcularFilaMasiva(${index})"></td>
+                    <td><strong class="neto-calculado" style="color: #4ade80;">$${emp.salario.toFixed(2)}</strong></td>
+                </tr>
+            `).join('');
+            
+            // Calcular iniciales
+            listaEmpleados.forEach((_, index) => recalcularFilaMasiva(index));
         }
 
-        function calcularPlanillaCompleta() {
-            const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
-            const cantHeDiurnas = parseFloat(document.getElementById('planCantHeDiurnas').value) || 0;
-            const cantHeNocturnas = parseFloat(document.getElementById('planCantHeNocturnas').value) || 0;
-            const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
-            const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
-            const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
+        function recalcularFilaMasiva(index) {
+            const fila = document.querySelector(`#tablaPlanillaMasiva tr[data-index="${index}"]`);
+            if (!fila) return;
+
+            const emp = listaEmpleados[index];
+            const salarioBase = emp.salario;
+            
+            const cantHeDiurnas = parseFloat(fila.querySelector('.he-diurnas').value) || 0;
+            const cantHeNocturnas = parseFloat(fila.querySelector('.he-nocturnas').value) || 0;
+            const bonos = parseFloat(fila.querySelector('.bonos').value) || 0;
+            const deduccionesExtra = parseFloat(fila.querySelector('.deducciones').value) || 0;
 
             const valorHoraOrdinaria = salarioBase / 30 / 8;
             const pagoHeDiurnas = cantHeDiurnas * valorHoraOrdinaria * 2;
             const pagoHeNocturnas = cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25;
             
-            const totalDevengado = salarioBase + pagoHeDiurnas + pagoHeNocturnas + bonos + aguinaldo;
+            const totalDevengado = salarioBase + pagoHeDiurnas + pagoHeNocturnas + bonos;
 
             const baseIsss = Math.min(salarioBase + bonos, 1000.00);
             const isss = baseIsss * 0.03;
@@ -729,73 +690,71 @@
             const totalDeducciones = isss + afp + renta + deduccionesExtra;
             const salarioNeto = totalDevengado - totalDeducciones;
 
-            document.getElementById('resDevengado').innerText = `$${totalDevengado.toFixed(2)}`;
-            document.getElementById('resIsss').innerText = `$${isss.toFixed(2)}`;
-            document.getElementById('resAfp').innerText = `$${afp.toFixed(2)}`;
-            document.getElementById('resRenta').innerText = `$${renta.toFixed(2)}`;
-            document.getElementById('resOtras').innerText = `$${deduccionesExtra.toFixed(2)}`;
-            document.getElementById('resNeto').innerText = `$${salarioNeto.toFixed(2)}`;
+            fila.querySelector('.neto-calculado').innerText = `$${salarioNeto.toFixed(2)}`;
         }
 
-        // FUNCIÓN CORREGIDA Y CONECTADA AL API PARA GUARDAR NOVEDADES Y PLANILLA EN GOOGLE SHEETS
-        async function sincronizarPlanillaMaestra() {
-            const empleadoSelect = document.getElementById('planSelectEmpleado');
-            const empleadoNombre = empleadoSelect.value;
-            
-            if (!empleadoNombre) {
-                alert("Por favor seleccione un empleado antes de sincronizar la planilla.");
+        async function sincronizarPlanillaMasivaCompleta() {
+            if (listaEmpleados.length === 0) {
+                alert("No hay empleados para sincronizar.");
                 return;
             }
 
-            const salarioBase = parseFloat(document.getElementById('planSalario').value) || 0;
-            const cantHeDiurnas = parseFloat(document.getElementById('planCantHeDiurnas').value) || 0;
-            const cantHeNocturnas = parseFloat(document.getElementById('planCantHeNocturnas').value) || 0;
-            const bonos = parseFloat(document.getElementById('planBonos').value) || 0;
-            const deduccionesExtra = parseFloat(document.getElementById('planDeduccionesExtra').value) || 0;
-            const aguinaldo = parseFloat(document.getElementById('planAguinaldo').value) || 0;
-
-            const totalDevengado = document.getElementById('resDevengado').innerText;
-            const isss = document.getElementById('resIsss').innerText;
-            const afp = document.getElementById('resAfp').innerText;
-            const renta = document.getElementById('resRenta').innerText;
-            const salarioNeto = document.getElementById('resNeto').innerText;
-
-            const payload = {
-                accion: "guardar_planilla",
-                empleado: empleadoNombre,
-                salarioBase: salarioBase,
-                horasExtraDiurnas: cantHeDiurnas,
-                horasExtraNocturnas: cantHeNocturnas,
-                bonos: bonos,
-                deduccionesExtra: deduccionesExtra,
-                aguinaldo: aguinaldo,
-                devengado: totalDevengado,
-                isss: isss,
-                afp: afp,
-                renta: renta,
-                neto: salarioNeto,
-                fecha: new Date().toISOString()
-            };
-
+            const filas = document.querySelectorAll('#tablaPlanillaMasiva tbody tr');
             const btnSincronizar = event.target;
             const textoOriginal = btnSincronizar.innerHTML;
-            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando...`;
+            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando lote...`;
             btnSincronizar.disabled = true;
 
+            let sincronizadosExitosos = 0;
+
             try {
-                const respuesta = await API.enviarDatos(payload);
-                
-                if (respuesta && (respuesta.estado === "correcto" || respuesta.result === "success" || respuesta.estado === "exito")) {
-                    alert(`¡Planilla de ${empleadoNombre} sincronizada con éxito en Google Sheets! Neto a pagar: ${salarioNeto}`);
-                    registrarHistorialSincro("Sincronización de Planilla", `Empleado: ${empleadoNombre} - Neto: ${salarioNeto}`);
-                    registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla para ${empleadoNombre}`);
-                } else {
-                    alert("Los datos se enviaron, pero hubo un aviso del servidor: " + (respuesta.mensaje || "Revisar Google Sheets"));
-                    registrarHistorialSincro("Sincronización (Con Avisos)", `Empleado: ${empleadoNombre}`);
+                for (let i = 0; i < listaEmpleados.length; i++) {
+                    const emp = listaEmpleados[i];
+                    const fila = filas[i];
+                    
+                    const cantHeDiurnas = parseFloat(fila.querySelector('.he-diurnas').value) || 0;
+                    const cantHeNocturnas = parseFloat(fila.querySelector('.he-nocturnas').value) || 0;
+                    const bonos = parseFloat(fila.querySelector('.bonos').value) || 0;
+                    const deduccionesExtra = parseFloat(fila.querySelector('.deducciones').value) || 0;
+                    const netoTexto = fila.querySelector('.neto-calculado').innerText;
+
+                    const valorHoraOrdinaria = emp.salario / 30 / 8;
+                    const totalDevengado = emp.salario + (cantHeDiurnas * valorHoraOrdinaria * 2) + (cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25) + bonos;
+                    const isss = Math.min(emp.salario + bonos, 1000.00) * 0.03;
+                    const afp = (emp.salario + bonos) * 0.0725;
+                    const rentaGravada = Math.max(0, totalDevengado - isss - afp);
+                    let renta = 0;
+                    if (rentaGravada > 472.00 && rentaGravada <= 895.24) renta = ((rentaGravada - 472.00) * 0.10) + 17.67;
+                    else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) renta = ((rentaGravada - 895.24) * 0.20) + 60.00;
+                    else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
+
+                    const payload = {
+                        accion: "guardar_planilla",
+                        empleado: emp.nombre,
+                        salarioBase: emp.salario,
+                        horasExtraDiurnas: cantHeDiurnas,
+                        horasExtraNocturnas: cantHeNocturnas,
+                        bonos: bonos,
+                        deduccionesExtra: deduccionesExtra,
+                        aguinaldo: 0,
+                        devengado: `$${totalDevengado.toFixed(2)}`,
+                        isss: `$${isss.toFixed(2)}`,
+                        afp: `$${afp.toFixed(2)}`,
+                        renta: `$${renta.toFixed(2)}`,
+                        neto: netoTexto,
+                        fecha: new Date().toISOString()
+                    };
+
+                    await API.enviarDatos(payload);
+                    sincronizadosExitosos++;
                 }
+
+                alert(`¡Lote sincronizado con éxito! Se procesaron ${sincronizadosExitosos} empleados en Google Sheets.`);
+                registrarHistorialSincro("Sincronización Masiva de Planilla", `Se actualizaron ${sincronizadosExitosos} registros.`);
+                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla masiva (${sincronizadosExitosos} emp.)`);
             } catch (error) {
-                console.error("Error al sincronizar planilla:", error);
-                alert("Error de conexión al intentar guardar la planilla en la nube. Verifique su conexión.");
+                console.error("Error al sincronizar lote:", error);
+                alert("Ocurrió un error al conectar con la nube durante la sincronización masiva.");
             } finally {
                 btnSincronizar.innerHTML = textoOriginal;
                 btnSincronizar.disabled = false;
@@ -855,9 +814,7 @@
             });
         }
 
-        function actualizarGraficasDinamicas() {
-            // Actualización de gráficas según datos guardados si se requiere
-        }
+        function actualizarGraficasDinamicas() {}
 
         function actualizarReportes() {
             document.getElementById('repTotalEmp').innerText = listaEmpleados.length;
