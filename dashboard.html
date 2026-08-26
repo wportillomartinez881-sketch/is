@@ -353,7 +353,7 @@
                 </div>
             </div>
 
-            <!-- 3. CÁLCULO DE PLANILLA (MODIFICADO A TABLA MASIVA) -->
+            <!-- 3. CÁLCULO DE PLANILLA -->
             <div id="vista-planilla" class="view-section">
                 <div class="module-card">
                     <h3>Cálculo Masivo de Planilla</h3>
@@ -631,7 +631,6 @@
             actualizarTablaPlanillaMasiva();
         }
 
-        // --- CÁLCULO MASIVO EN TABLA ---
         function actualizarTablaPlanillaMasiva() {
             const tbody = document.querySelector('#tablaPlanillaMasiva tbody');
             if (listaEmpleados.length === 0) {
@@ -651,7 +650,6 @@
                 </tr>
             `).join('');
             
-            // Calcular iniciales
             listaEmpleados.forEach((_, index) => recalcularFilaMasiva(index));
         }
 
@@ -728,28 +726,47 @@
                     else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) renta = ((rentaGravada - 895.24) * 0.20) + 60.00;
                     else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
 
+                    const totalDeducciones = isss + afp + renta + deduccionesExtra;
+                    const aportePatronal = (emp.salario * 0.075) + (emp.salario * 0.0775); // ISSS Patrono (7.5%) + AFP Patrono (7.75%)
+
                     const payload = {
                         accion: "guardar_planilla",
                         empleado: emp.nombre,
                         salarioBase: emp.salario,
-                        horasExtraDiurnas: cantHeDiurnas,
-                        horasExtraNocturnas: cantHeNocturnas,
-                        bonos: bonos,
-                        deduccionesExtra: deduccionesExtra,
-                        aguinaldo: 0,
+                        devengado: totalDevengado.toFixed(2),
+                        deducciones: totalDeducciones.toFixed(2),
+                        neto: salarioNeto.toFixed(2) || netoTexto.replace('$', ''),
+                        aportesPatronales: aportePatronal.toFixed(2),
+                        fecha: new Date().toLocaleDateString()
+                    };
+
+                    // Enviar al API web
+                    await API.enviarDatos(payload);
+
+                    // ALIMENTAR HISTORIALES LOCALES PARA QUE DETALLE Y NOVEDADES NO QUEDEN EN BLANCO
+                    historialPlanillas.unshift({
+                        empleado: emp.nombre,
                         devengado: `$${totalDevengado.toFixed(2)}`,
+                        extrasBono: `$${( (cantHeDiurnas * valorHoraOrdinaria * 2) + (cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25) + bonos ).toFixed(2)}`,
                         isss: `$${isss.toFixed(2)}`,
                         afp: `$${afp.toFixed(2)}`,
                         renta: `$${renta.toFixed(2)}`,
-                        neto: netoTexto,
-                        fecha: new Date().toISOString()
-                    };
+                        deducciones: `$${deduccionesExtra.toFixed(2)}`,
+                        neto: netoTexto
+                    });
 
-                    await API.enviarDatos(payload);
+                    if (cantHeDiurnas > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Horas Extra Diurnas", monto: `${cantHeDiurnas} hrs` });
+                    if (cantHeNocturnas > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Horas Extra Nocturnas", monto: `${cantHeNocturnas} hrs` });
+                    if (bonos > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Bonificación / Extra", monto: `$${bonos.toFixed(2)}` });
+                    if (deduccionesExtra > 0) historialNovedades.unshift({ empleado: emp.nombre, concepto: "Faltas / Deducción", monto: `$${deduccionesExtra.toFixed(2)}` });
+
                     sincronizadosExitosos++;
                 }
 
-                alert(`¡Lote sincronizado con éxito! Se procesaron ${sincronizadosExitosos} empleados en Google Sheets.`);
+                // Renderizar tablas de detalle y novedades en la interfaz web de inmediato
+                actualizarTablasDetalleYNovedades();
+
+                alert(`¡Lote sincronizado con éxito! Se procesaron ${sincronizadosExitosos} empleados en Google Sheets y en las vistas de detalle.`);
                 registrarHistorialSincro("Sincronización Masiva de Planilla", `Se actualizaron ${sincronizadosExitosos} registros.`);
                 registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla masiva (${sincronizadosExitosos} emp.)`);
             } catch (error) {
@@ -758,6 +775,37 @@
             } finally {
                 btnSincronizar.innerHTML = textoOriginal;
                 btnSincronizar.disabled = false;
+            }
+        }
+
+        function actualizarTablasDetalleYNovedades() {
+            // Rellenar Detalle de Planilla
+            const tbodyDetalle = document.querySelector('#tablaDetallePlanilla tbody');
+            if (tbodyDetalle && historialPlanillas.length > 0) {
+                tbodyDetalle.innerHTML = historialPlanillas.map(h => `
+                    <tr>
+                        <td>${h.empleado}</td>
+                        <td>${h.devengado}</td>
+                        <td>${h.extrasBono}</td>
+                        <td>${h.isss}</td>
+                        <td>${h.afp}</td>
+                        <td>${h.renta}</td>
+                        <td>${h.deducciones}</td>
+                        <td><strong style="color:#4ade80;">${h.neto}</strong></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Rellenar Novedades
+            const tbodyNovedades = document.querySelector('#tablaNovedades tbody');
+            if (tbodyNovedades && historialNovedades.length > 0) {
+                tbodyNovedades.innerHTML = historialNovedades.map(n => `
+                    <tr>
+                        <td>${n.empleado}</td>
+                        <td>${n.concepto}</td>
+                        <td>${n.monto}</td>
+                    </tr>
+                `).join('');
             }
         }
 
