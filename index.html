@@ -417,7 +417,7 @@
         </div>
     </div>
 
-    <!-- Script de Interactividad y Conexión con Google Sheets -->
+    <!-- Script de Interactividad y Acceso Predeterminado -->
     <script>
         // Efecto de luz dinámico siguiendo el cursor sobre la tarjeta principal
         const mainCard = document.getElementById('mainCard');
@@ -429,10 +429,7 @@
             mainCard.style.setProperty('--mouse-y', `${y}px`);
         });
 
-        // URL de tu Web App de Google Apps Script (Versión 25)
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoCo98Z-eYWrQfNZOGzUByhF9Y1Bcb1QqMh0akVPgwYUdWC8xIg5ZqmWGCzaD0T5SB/exec";
-
-        // Lógica de validación conectada directamente a la hoja de Google Sheets
+        // Lógica de validación directa con credenciales predeterminadas
         async function validarLogin(event) {
             event.preventDefault();
             const emailInput = document.getElementById('email').value.trim();
@@ -444,36 +441,24 @@
             loginBtn.innerText = "Verificando...";
             loginBtn.disabled = true;
 
-            try {
-                const respuesta = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        accion: "iniciar_sesion",
-                        correo: emailInput,
-                        password: passwordInput
-                    })
-                });
+            // Simulación de pequeña pausa de verificación
+            await new Promise(resolve => setTimeout(resolve, 400));
 
-                const data = await respuesta.json();
+            // Credenciales predeterminadas configuradas
+            const correoPredeterminado = "wportillomartinez30@gmail.com";
+            const passwordPredeterminado = "1w3r5y7i";
 
-                if (data.estado === "correcto" || data.result === "success") {
-                    const usuario = data.usuario || { nombre: "Usuario", rol: "Administrador" };
-                    
-                    // Guardamos la sesión actual en el navegador para futuras páginas
-                    localStorage.setItem('nexus_usuario', JSON.stringify(usuario));
-                    
-                    // Redirigir al panel principal creado (dashboard.html)
-                    window.location.href = "dashboard.html";
-                } else {
-                    errorMsg.innerText = data.mensaje || "Correo o contraseña incorrectos.";
-                    errorMsg.style.display = "block";
-                }
-            } catch (err) {
-                console.error("Error de conexión:", err);
-                errorMsg.innerText = "Error al conectar con la base de datos de Google Sheets.";
+            if (emailInput === correoPredeterminado && passwordInput === passwordPredeterminado) {
+                const usuario = { nombre: "Williams Portillo", rol: "Administrador" };
+                
+                // Guardamos la sesión en el navegador
+                localStorage.setItem('nexus_usuario', JSON.stringify(usuario));
+                
+                // Redirigir al panel principal
+                window.location.href = "dashboard.html";
+            } else {
+                errorMsg.innerText = "Correo o contraseña incorrectos.";
                 errorMsg.style.display = "block";
-            } finally {
                 loginBtn.innerText = "Iniciar Sesión";
                 loginBtn.disabled = false;
             }
