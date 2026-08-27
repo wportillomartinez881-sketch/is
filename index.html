@@ -61,7 +61,7 @@
             50% { transform: translateY(-30px) scale(1.2); opacity: 0.8; }
         }
 
-        /* Tarjeta principal de dos paneles idéntica a tu diseño original */
+        /* Tarjeta principal de dos paneles */
         .login-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -84,7 +84,7 @@
             }
         }
 
-        /* Panel Izquierdo (Información y botón de contacto agregado) */
+        /* Panel Izquierdo */
         .panel-left {
             padding: 40px;
             display: flex;
@@ -135,32 +135,7 @@
             color: #64748b;
         }
 
-        /* Botón de contacto añadido en el panel izquierdo */
-        .btn-contact-custom {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-            width: fit-content;
-        }
-
-        .btn-contact-custom:hover {
-            background: rgba(56, 189, 248, 0.2);
-            border-color: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
-            color: #ffffff;
-        }
-
-        /* Panel Derecho (Formulario de Acceso) */
+        /* Panel Derecho (Formulario de Acceso y Botón de Contacto debajo) */
         .panel-right {
             padding: 40px;
             display: flex;
@@ -230,6 +205,33 @@
             border-color: #38bdf8;
             box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
         }
+
+        /* Estilo visual unificado para el botón de contacto ubicado debajo del login */
+        .btn-contact-custom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            color: #c084fc;
+            padding: 11px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-contact-custom:hover {
+            background: rgba(168, 85, 247, 0.25);
+            border-color: #c084fc;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(192, 132, 252, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -238,7 +240,7 @@
     <div class="bg-effects" id="bgEffects"></div>
 
     <div class="login-container">
-        <!-- Panel Izquierdo con la información y el botón de contacto integrado -->
+        <!-- Panel Izquierdo con la información original -->
         <div class="panel-left">
             <div>
                 <h2>NEXUS</h2>
@@ -249,11 +251,6 @@
                     <li><i class="fas fa-check-circle"></i> Gestión centralizada de nóminas</li>
                     <li><i class="fas fa-check-circle"></i> Soporte estratégico especializado</li>
                 </ul>
-
-                <!-- Botón de contacto solicitado -->
-                <a href="contacto.html" class="btn-contact-custom">
-                    <i class="fas fa-envelope"></i> Contacto y Soporte
-                </a>
             </div>
 
             <div class="footer-copy">
@@ -261,7 +258,7 @@
             </div>
         </div>
 
-        <!-- Panel Derecho con el formulario de acceso -->
+        <!-- Panel Derecho con el formulario de acceso y el botón de contacto debajo -->
         <div class="panel-right">
             <h3>Acceso a Clientes</h3>
             <p>Ingrese sus credenciales autorizadas para acceder al sistema.</p>
@@ -279,6 +276,11 @@
                     Iniciar Sesión
                 </button>
             </form>
+
+            <!-- Botón de contacto y soporte ubicado exactamente debajo del botón de iniciar sesión -->
+            <a href="contacto.html" class="btn-contact-custom">
+                <i class="fas fa-envelope"></i> Contacto y Soporte
+            </a>
         </div>
     </div>
 
