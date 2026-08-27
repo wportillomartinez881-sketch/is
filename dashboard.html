@@ -288,7 +288,7 @@
             <div id="vista-dashboard" class="view-section active">
                 <div class="module-card">
                     <h3>Resumen General de Operaciones</h3>
-                    <p>Métricas y estadísticas dinámicas basadas en los registros reales ingresados.</p>
+                    <p>Métricas y estadísticas dinámicas basadas en los registros locales ingresados.</p>
                 </div>
                 <div class="grid-2">
                     <div class="module-card">
@@ -298,7 +298,7 @@
                         </div>
                     </div>
                     <div class="module-card">
-                        <h3>Actividad de Sincronizaciones</h3>
+                        <h3>Actividad del Sistema</h3>
                         <div class="chart-container">
                             <canvas id="graficaActividad"></canvas>
                         </div>
@@ -333,7 +333,7 @@
                                 Valor estimado hora extra diurna: <strong id="lblValorHePreview" style="color: #4ade80;">$0.00</strong>
                             </div>
                             <button class="btn-action" onclick="registrarEmpleado()">
-                                <i class="fas fa-user-plus"></i> Guardar y Sincronizar Empleado
+                                <i class="fas fa-user-plus"></i> Guardar Empleado
                             </button>
                         </div>
                         <div>
@@ -357,7 +357,7 @@
             <div id="vista-planilla" class="view-section">
                 <div class="module-card">
                     <h3>Cálculo Masivo de Planilla</h3>
-                    <p>Modifique las horas extra, bonos y deducciones directamente en la tabla para todo el personal y sincronice todo el lote.</p>
+                    <p>Modifique las horas extra, bonos y deducciones directamente en la tabla para todo el personal y procese el lote.</p>
                     
                     <div style="overflow-x: auto; margin-top: 15px;">
                         <table class="data-table" id="tablaPlanillaMasiva">
@@ -379,7 +379,7 @@
                     </div>
 
                     <button class="btn-action" style="max-width: 320px; margin-top: 20px;" onclick="sincronizarPlanillaMasivaCompleta()">
-                        <i class="fas fa-cloud-upload-alt"></i> Sincronizar Todo el Lote
+                        <i class="fas fa-check-circle"></i> Procesar y Guardar Lote de Planilla
                     </button>
                 </div>
             </div>
@@ -387,30 +387,30 @@
             <!-- 4. DETALLE DE PLANILLA -->
             <div id="vista-detalle" class="view-section">
                 <div class="module-card">
-                    <h3>Detalle Consolidado de Planilla y Novedades</h3>
+                    <h3>Detalle Consolidado de Planilla</h3>
                     <p>Desglose completo especificando percepciones extraordinarias, ISSS, AFP, Renta y deducciones.</p>
                     <table class="data-table" id="tablaDetallePlanilla">
                         <thead>
                             <tr><th>Empleado</th><th>Devengado</th><th>H. Extra/Bono</th><th>ISSS</th><th>AFP</th><th>Renta</th><th>Deducc./Faltas</th><th>Neto</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="8" style="text-align: center; color: #64748b;">No hay registros de planilla sincronizados.</td></tr>
+                            <tr><td colspan="8" style="text-align: center; color: #64748b;">No hay registros de planilla procesados.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- 5. NOVEDADES -->
+            <!-- 5. NOVEDADES (Corregido y sincronizado con el cálculo) -->
             <div id="vista-novedades" class="view-section">
                 <div class="module-card">
                     <h3>Registro de Novedades del Período</h3>
-                    <p>Listado de incidencias, horas extra, vacaciones y ausencias aplicadas al personal.</p>
+                    <p>Listado automático de incidencias, horas extra, bonos y ausencias aplicadas al personal en el último cálculo.</p>
                     <table class="data-table" id="tablaNovedades">
                         <thead>
-                            <tr><th>Empleado</th><th>Concepto / Novedad</th><th>Monto ($)</th></tr>
+                            <tr><th>Empleado</th><th>Concepto / Novedad</th><th>Monto / Detalle ($)</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">No hay novedades registradas.</td></tr>
+                            <tr><td colspan="3" style="text-align: center; color: #64748b;">No hay novedades registradas en el período actual.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -440,17 +440,17 @@
                 </div>
             </div>
 
-            <!-- 8. HISTORIAL -->
+            <!-- 8. HISTORIAL (Corregido para mostrar el histórico de planillas guardadas) -->
             <div id="vista-historial" class="view-section">
                 <div class="module-card">
-                    <h3>Historial de Sincronizaciones</h3>
-                    <p>Registro de transacciones efectuadas en el sistema.</p>
+                    <h3>Historial de Planillas Procesadas</h3>
+                    <p>Registro de lotes de planillas calculados y guardados en el sistema.</p>
                     <table class="data-table" id="tablaHistorial">
                         <thead>
-                            <tr><th>Fecha / Hora</th><th>Acción</th><th>Detalle</th></tr>
+                            <tr><th>Fecha / Hora</th><th>Lote / Período</th><th>Empleados</th><th>Monto Neto Total</th></tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="3" style="text-align: center; color: #64748b;">Sin historial de sincronizaciones recientes.</td></tr>
+                            <tr><td colspan="4" style="text-align: center; color: #64748b;">Sin historial de planillas procesadas recientes.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -526,9 +526,6 @@
         let historialSincro = [];
         let registroAuditoria = [];
 
-        // URL de tu Web App de Google Apps Script
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoCo98Z-eYWrQfNZOGzUByhF9Y1Bcb1QqMh0akVPgwYUdWC8xIg5ZqmWGCzaD0T5SB/exec";
-
         document.addEventListener("DOMContentLoaded", () => {
             const datosUsuario = localStorage.getItem('nexus_usuario');
             if (!datosUsuario) {
@@ -541,11 +538,24 @@
 
             registrarAuditoriaEvento(usuario.nombre || "Administrador", "Inicio de Sesión Exitoso");
 
+            // Cargar datos guardados localmente para asegurar funcionamiento independiente
             const empleadosGuardados = localStorage.getItem('nexus_empleados');
             if (empleadosGuardados) {
                 listaEmpleados = JSON.parse(empleadosGuardados);
                 actualizarTablaEmpleados();
                 actualizarTablaPlanillaMasiva();
+            }
+
+            const historialGuardado = localStorage.getItem('nexus_historial_planillas');
+            if (historialGuardado) {
+                historialPlanillas = JSON.parse(historialGuardado);
+                actualizarTablaHistorial();
+            }
+
+            const novedadesGuardadas = localStorage.getItem('nexus_novedades');
+            if (novedadesGuardadas) {
+                historialNovedades = JSON.parse(novedadesGuardadas);
+                actualizarTablaNovedades();
             }
 
             inicializarGraficasEnCero();
@@ -569,7 +579,7 @@
             document.getElementById('lblValorHePreview').innerText = `$${valorHora.toFixed(2)}`;
         }
 
-        async function registrarEmpleado() {
+        function registrarEmpleado() {
             const nombre = document.getElementById('empNombre').value.trim();
             const dui = document.getElementById('empDui').value.trim();
             const cargo = document.getElementById('empCargo').value.trim();
@@ -584,24 +594,7 @@
             listaEmpleados.push(nuevoEmpleado);
             
             localStorage.setItem('nexus_empleados', JSON.stringify(listaEmpleados));
-
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        accion: "REGISTRAR_EMPLEADO",
-                        nombre: nombre,
-                        dui: dui,
-                        cargo: cargo,
-                        salario: salario
-                    })
-                });
-                registrarHistorialSincro("Alta de Empleado", `Nombre: ${nombre} - Salario: $${salario.toFixed(2)}`);
-            } catch (e) {
-                console.warn("Error al sincronizar empleado en la nube.");
-            }
+            registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Registró al empleado: ${nombre}`);
 
             document.getElementById('empNombre').value = '';
             document.getElementById('empDui').value = '';
@@ -611,7 +604,7 @@
 
             actualizarTablaEmpleados();
             actualizarTablaPlanillaMasiva();
-            alert("Empleado guardado correctamente.");
+            alert("Empleado guardado correctamente en el sistema local.");
         }
 
         function actualizarTablaEmpleados() {
@@ -692,102 +685,87 @@
             fila.querySelector('.neto-calculado').innerText = `$${salarioNeto.toFixed(2)}`;
         }
 
-        async function sincronizarPlanillaMasivaCompleta() {
+        function sincronizarPlanillaMasivaCompleta() {
             if (listaEmpleados.length === 0) {
-                alert("No hay empleados para sincronizar.");
+                alert("No hay empleados para calcular.");
                 return;
             }
 
             const filas = document.querySelectorAll('#tablaPlanillaMasiva tbody tr');
-            const btnSincronizar = event.target;
-            const textoOriginal = btnSincronizar.innerHTML;
-            btnSincronizar.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Guardando en Google...`;
-            btnSincronizar.disabled = true;
+            let detallesCalculados = [];
+            let nuevasNovedades = [];
 
-            historialPlanillas = [];
-            historialNovedades = [];
+            let totalNetoGlobal = 0;
 
-            try {
-                let totalDevengadoGlobal = 0;
-                let totalIsssGlobal = 0;
-                let totalAfpGlobal = 0;
-                let totalRentaGlobal = 0;
-                let totalNetoGlobal = 0;
+            filas.forEach((fila, i) => {
+                const emp = listaEmpleados[i];
+                const cantHeDiurnas = parseFloat(fila.querySelector('.he-diurnas').value) || 0;
+                const cantHeNocturnas = parseFloat(fila.querySelector('.he-nocturnas').value) || 0;
+                const bonos = parseFloat(fila.querySelector('.bonos').value) || 0;
+                const deduccionesExtra = parseFloat(fila.querySelector('.deducciones').value) || 0;
+                const netoTexto = fila.querySelector('.neto-calculado').innerText;
 
-                for (let i = 0; i < listaEmpleados.length; i++) {
-                    const emp = listaEmpleados[i];
-                    const fila = filas[i];
-                    
-                    const cantHeDiurnas = parseFloat(fila.querySelector('.he-diurnas').value) || 0;
-                    const cantHeNocturnas = parseFloat(fila.querySelector('.he-nocturnas').value) || 0;
-                    const bonos = parseFloat(fila.querySelector('.bonos').value) || 0;
-                    const deduccionesExtra = parseFloat(fila.querySelector('.deducciones').value) || 0;
-                    const netoTexto = fila.querySelector('.neto-calculado').innerText;
+                const valorHoraOrdinaria = emp.salario / 30 / 8;
+                const pagoHeDiurnas = cantHeDiurnas * valorHoraOrdinaria * 2;
+                const pagoHeNocturnas = cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25;
+                const totalDevengado = emp.salario + pagoHeDiurnas + pagoHeNocturnas + bonos;
+                
+                const isss = Math.min(emp.salario + bonos, 1000.00) * 0.03;
+                const afp = (emp.salario + bonos) * 0.0725;
+                const rentaGravada = Math.max(0, totalDevengado - isss - afp);
+                let renta = 0;
+                if (rentaGravada > 472.00 && rentaGravada <= 895.24) renta = ((rentaGravada - 472.00) * 0.10) + 17.67;
+                else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) renta = ((rentaGravada - 895.24) * 0.20) + 60.00;
+                else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
 
-                    const valorHoraOrdinaria = emp.salario / 30 / 8;
-                    const totalDevengado = emp.salario + (cantHeDiurnas * valorHoraOrdinaria * 2) + (cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25) + bonos;
-                    const isss = Math.min(emp.salario + bonos, 1000.00) * 0.03;
-                    const afp = (emp.salario + bonos) * 0.0725;
-                    const rentaGravada = Math.max(0, totalDevengado - isss - afp);
-                    let renta = 0;
-                    if (rentaGravada > 472.00 && rentaGravada <= 895.24) renta = ((rentaGravada - 472.00) * 0.10) + 17.67;
-                    else if (rentaGravada > 895.24 && rentaGravada <= 2038.10) renta = ((rentaGravada - 895.24) * 0.20) + 60.00;
-                    else if (rentaGravada > 2038.10) renta = ((rentaGravada - 2038.10) * 0.30) + 288.57;
+                const totalDeducciones = isss + afp + renta + deduccionesExtra;
+                const netoCalculado = totalDevengado - totalDeducciones;
+                totalNetoGlobal += netoCalculado;
 
-                    const totalDeducciones = isss + afp + renta + deduccionesExtra;
-                    const netoCalculado = totalDevengado - totalDeducciones;
-
-                    totalDevengadoGlobal += totalDevengado;
-                    totalIsssGlobal += isss;
-                    totalAfpGlobal += afp;
-                    totalRentaGlobal += renta;
-                    totalNetoGlobal += netoCalculado;
-
-                    historialPlanillas.unshift({
-                        empleado: emp.nombre,
-                        devengado: `$${totalDevengado.toFixed(2)}`,
-                        extrasBono: `$${( (cantHeDiurnas * valorHoraOrdinaria * 2) + (cantHeNocturnas * valorHoraOrdinaria * 2 * 1.25) + bonos ).toFixed(2)}`,
-                        isss: `$${isss.toFixed(2)}`,
-                        afp: `$${afp.toFixed(2)}`,
-                        renta: `$${renta.toFixed(2)}`,
-                        deducciones: `$${deduccionesExtra.toFixed(2)}`,
-                        neto: netoTexto
-                    });
-                }
-
-                // Envío con la orden exacta "GUARDAR_PLANILLA" esperada por tu Google Apps Script
-                await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        accion: "GUARDAR_PLANILLA",
-                        id_empresa: "EMP001",
-                        devengado: totalDevengadoGlobal,
-                        isss: totalIsssGlobal,
-                        afp: totalAfpGlobal,
-                        renta: totalRentaGlobal,
-                        neto: totalNetoGlobal
-                    })
+                detallesCalculados.push({
+                    empleado: emp.nombre,
+                    devengado: `$${totalDevengado.toFixed(2)}`,
+                    extrasBono: `$${(pagoHeDiurnas + pagoHeNocturnas + bonos).toFixed(2)}`,
+                    isss: `$${isss.toFixed(2)}`,
+                    afp: `$${afp.toFixed(2)}`,
+                    renta: `$${renta.toFixed(2)}`,
+                    deducciones: `$${deduccionesExtra.toFixed(2)}`,
+                    neto: `$${netoCalculado.toFixed(2)}`
                 });
 
-                actualizarTablasDetalleYNovedades();
-                alert(`¡Planilla calculada y guardada en el documento de Google con éxito!`);
-                registrarHistorialSincro("Sincronización a Google", `Lote procesado para ${listaEmpleados.length} empleados.`);
-                registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Sincronizó planilla a Google Sheets`);
-            } catch (error) {
-                console.error("Error al sincronizar:", error);
-                alert("Ocurrió un error al intentar guardar en Google Sheets.");
-            } finally {
-                btnSincronizar.innerHTML = textoOriginal;
-                btnSincronizar.disabled = false;
-            }
+                // Registrar novedades automáticamente si hubo horas extra, bonos o deducciones
+                if (cantHeDiurnas > 0) nuevasNovedades.push({ empleado: emp.nombre, concepto: 'Horas Extra Diurnas', monto: `${cantHeDiurnas} hrs ($${pagoHeDiurnas.toFixed(2)})` });
+                if (cantHeNocturnas > 0) nuevasNovedades.push({ empleado: emp.nombre, concepto: 'Horas Extra Nocturnas', monto: `${cantHeNocturnas} hrs ($${pagoHeNocturnas.toFixed(2)})` });
+                if (bonos > 0) nuevasNovedades.push({ empleado: emp.nombre, concepto: 'Bono Extraordinario', monto: `$${bonos.toFixed(2)}` });
+                if (deduccionesExtra > 0) nuevasNovedades.push({ empleado: emp.nombre, concepto: 'Deducciones / Faltas', monto: `$${deduccionesExtra.toFixed(2)}` });
+            });
+
+            // Guardar en detalle y en el historial de planillas local
+            window.detallesActualesPlanilla = detallesCalculados;
+            actualizarTablaDetalle();
+
+            historialNovedades = nuevasNovedades;
+            localStorage.setItem('nexus_novedades', JSON.stringify(historialNovedades));
+            actualizarTablaNovedades();
+
+            const nuevoRegistroHistorial = {
+                fecha: new Date().toLocaleString(),
+                periodo: "Período Actual (" + new Date().toLocaleDateString() + ")",
+                empleados: listaEmpleados.length,
+                netoTotal: `$${totalNetoGlobal.toFixed(2)}`
+            };
+            historialPlanillas.unshift(nuevoRegistroHistorial);
+            localStorage.setItem('nexus_historial_planillas', JSON.stringify(historialPlanillas));
+            actualizarTablaHistorial();
+
+            alert("¡Planilla calculada y guardada localmente con éxito! Puede revisar los módulos de Detalle, Novedades e Historial.");
+            registrarAuditoriaEvento(document.getElementById('nombreUsuario').innerText, `Procesó planilla para ${listaEmpleados.length} empleados`);
         }
 
-        function actualizarTablasDetalleYNovedades() {
+        function actualizarTablaDetalle() {
             const tbodyDetalle = document.querySelector('#tablaDetallePlanilla tbody');
-            if (tbodyDetalle && historialPlanillas.length > 0) {
-                tbodyDetalle.innerHTML = historialPlanillas.map(h => `
+            if (window.detallesActualesPlanilla && window.detallesActualesPlanilla.length > 0) {
+                tbodyDetalle.innerHTML = window.detallesActualesPlanilla.map(h => `
                     <tr>
                         <td>${h.empleado}</td>
                         <td>${h.devengado}</td>
@@ -800,26 +778,37 @@
                     </tr>
                 `).join('');
             }
-
-            const tbodyNovedades = document.querySelector('#tablaNovedades tbody');
-            if (tbodyNovedades && historialNovedades.length > 0) {
-                tbodyNovedades.innerHTML = historialNovedades.map(n => `
-                    <tr>
-                        <td>${n.empleado}</td>
-                        <td>${n.concepto}</td>
-                        <td>${n.monto}</td>
-                    </tr>
-                `).join('');
-            }
         }
 
-        function registrarHistorialSincro(accion, detalle) {
-            const fecha = new Date().toLocaleString();
-            historialSincro.unshift({ fecha, accion, detalle });
-            const tbody = document.querySelector('#tablaHistorial tbody');
-            if (tbody) {
-                tbody.innerHTML = historialSincro.map(h => `<tr><td>${h.fecha}</td><td>${h.accion}</td><td>${h.detalle}</td></tr>`).join('');
+        function actualizarTablaNovedades() {
+            const tbodyNovedades = document.querySelector('#tablaNovedades tbody');
+            if (historialNovedades.length === 0) {
+                tbodyNovedades.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">No hay novedades registradas en el período actual.</td></tr>`;
+                return;
             }
+            tbodyNovedades.innerHTML = historialNovedades.map(n => `
+                <tr>
+                    <td>${n.empleado}</td>
+                    <td>${n.concepto}</td>
+                    <td>${n.monto}</td>
+                </tr>
+            `).join('');
+        }
+
+        function actualizarTablaHistorial() {
+            const tbody = document.querySelector('#tablaHistorial tbody');
+            if (historialPlanillas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #64748b;">Sin historial de planillas procesadas recientes.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = historialPlanillas.map(h => `
+                <tr>
+                    <td>${h.fecha}</td>
+                    <td>${h.periodo}</td>
+                    <td>${h.empleados}</td>
+                    <td><strong style="color: #4ade80;">${h.netoTotal}</strong></td>
+                </tr>
+            `).join('');
         }
 
         function registrarAuditoriaEvento(usuario, evento) {
